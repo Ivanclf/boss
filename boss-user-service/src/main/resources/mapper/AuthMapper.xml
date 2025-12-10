@@ -9,4 +9,54 @@
             and role = #{role}
             and deleted = 0
     </select>
+
+    <select id="queryByPhone" resultType="com.boss.bosscommon.pojo.entity.User">
+        select * from users_db.user
+        where phone = #{phone}
+            and role = #{role}
+    </select>
+
+    <insert id="insert" parameterType="com.boss.bosscommon.pojo.entity.User">
+        INSERT INTO users_db.user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="uid != null">
+                uid,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="password != null">
+                password,
+            </if>
+            <if test="phone != null">
+                phone,
+            </if>
+            <if test="avatar != null">
+                avatar,
+            </if>
+            <if test="role != null">
+                role,
+            </if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="uid != null">
+                #{uid},
+            </if>
+            <if test="name != null">
+                #{name},
+            </if>
+            <if test="password != null">
+                #{password},
+            </if>
+            <if test="phone != null">
+                #{phone},
+            </if>
+            <if test="avatar != null">
+                #{avatar},
+            </if>
+            <if test="role != null">
+                #{role},
+            </if>
+        </trim>
+    </insert>
 </mapper>

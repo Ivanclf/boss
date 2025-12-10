@@ -1,4 +1,4 @@
-package com.boss.bosscommon.pojo.vo;
+package com.boss.bosscommon.pojo.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,11 +11,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserBasicVO implements Serializable {
-    private Long uid;
-    private String name;
+public class UserLoginPasswordDTO implements Serializable {
     private String phone;
-    private String avatar;
+    private String password;
     private Integer role;
-    private String authorization;
 }

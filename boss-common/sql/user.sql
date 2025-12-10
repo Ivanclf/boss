@@ -5,8 +5,8 @@ use  `users_db`;
 create table `user` (
     uid bigint primary key comment '唯一 id',
     name varchar(30) not null comment '用户名',
-    password varchar(32) comment '密码',
-    phone char(11) comment '手机号',
+    password varchar(32) not null comment '密码',
+    phone char(11) not null comment '手机号',
     avatar varchar(100) comment '头像链接',
     role tinyint(1) not null default 0 comment '角色，0 为求职者，1 为 HR',
     create_time datetime default current_timestamp comment '注册时间',

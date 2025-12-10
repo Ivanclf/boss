@@ -11,8 +11,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserLoginDTO implements Serializable {
+public class UserRegistryDTO implements Serializable {
     private String phone;
     private String password;
     private Integer role;
+    private String name;
 }
