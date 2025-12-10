@@ -1,0 +1,13 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: boss-gateway
+  profiles:
+    active: dev
+  main:
+    allow-circular-references: true
+  cloud:
+    nacos:
+      server-addr: ${spring.cloud.nacos.server-addr}
+

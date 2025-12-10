@@ -1,0 +1,9 @@
+.idea/
+.vascode/
+.mvn/
+**/.mvn
+**/mvnw.cmd
+**/mvnw
+**/HELP.md
+**/application-dev.yml
+**/applocation-prod.yml
