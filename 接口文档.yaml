@@ -1,0 +1,1173 @@
+openapi: 3.0.3
+info:
+  title: Boss直聘Java岗招聘平台API
+  description: |
+    ## 系统概述
+    基于微服务架构的Java岗位招聘平台，支持HR发布职位、求职者申请、双向聊天和AI模拟面试功能。
+    
+    ## 认证方式
+    - 使用Bearer Token进行API访问认证
+    - Token通过登录接口获取
+    - WebSocket连接需要在连接时传递token参数
+    
+    ## 接口约定
+    - 所有HTTP请求经过网关统一处理，返回格式为Result<T>
+    - 服务间通信直接返回业务对象
+    - 错误码统一约定：
+      - 200: 成功
+      - 400: 请求参数错误
+      - 401: 未授权或token无效
+      - 403: 权限不足
+      - 404: 资源不存在
+      - 500: 服务器内部错误
+  version: 1.0.0
+  contact:
+    name: 技术支持
+    email: support@boss-platform.com
+
+servers:
+  - url: http://localhost:8080/api
+    description: 本地开发环境
+  - url: https://api.boss-platform.com/api
+    description: 生产环境
+
+tags:
+  - name: 用户认证
+    description: 用户注册、登录、认证相关接口
+  - name: 用户管理
+    description: 用户信息管理接口
+  - name: 职位管理
+    description: 职位发布、搜索、申请相关接口
+  - name: 聊天服务
+    description: 用户与HR之间的聊天功能
+  - name: AI面试
+    description: AI模拟面试功能
+  - name: 文件上传
+    description: 简历等文件上传接口
+
+paths:
+  # ==================== 用户认证相关接口 ====================
+  /user/auth/login:
+    post:
+      tags:
+        - 用户认证
+      summary: 用户登录
+      description: 使用手机号和密码登录系统
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: 参数错误
+        '401':
+          description: 用户名或密码错误
+
+  /user/auth/register:
+    post:
+      tags:
+        - 用户认证
+      summary: 用户注册
+      description: 新用户注册，支持HR和求职者两种角色
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数错误或手机号已存在
+
+  /user/auth/logout:
+    post:
+      tags:
+        - 用户认证
+      summary: 用户登出
+      description: 注销当前登录的token
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 登出成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+
+  # ==================== 用户管理接口 ====================
+  /user/profile:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取当前用户信息
+      description: 获取当前登录用户的详细信息
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: 未认证
+
+    put:
+      tags:
+        - 用户管理
+      summary: 更新用户信息
+      description: 更新当前用户的个人信息
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: 参数错误
+
+  /user/profile/{userId}:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取指定用户信息
+      description: 根据用户ID获取用户公开信息（仅限HR查看求职者或求职者查看HR）
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 用户ID
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublicInfo'
+        '403':
+          description: 权限不足
+
+  # ==================== 职位管理接口 ====================
+  /jobs:
+    post:
+      tags:
+        - 职位管理
+      summary: 发布新职位
+      description: HR发布新的招聘职位
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateJobRequest'
+      responses:
+        '200':
+          description: 发布成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobInfo'
+        '401':
+          description: 需要HR权限
+
+    get:
+      tags:
+        - 职位管理
+      summary: 搜索职位
+      description: 搜索职位，支持关键字、技术栈、薪资范围等条件
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 搜索关键词（标题、描述、技术栈）
+        - name: techStack
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 技术栈标签
+        - name: minSalary
+          in: query
+          required: false
+          schema:
+            type: number
+          description: 最低薪资
+        - name: maxSalary
+          in: query
+          required: false
+          schema:
+            type: number
+          description: 最高薪资
+        - name: location
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 工作地点
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: 页码，从0开始
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: 每页数量
+      responses:
+        '200':
+          description: 搜索成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResult<JobInfo>'
+
+  /jobs/{jobId}:
+    get:
+      tags:
+        - 职位管理
+      summary: 获取职位详情
+      description: 获取指定职位的详细信息
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 职位ID
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobInfo'
+        '404':
+          description: 职位不存在
+
+    put:
+      tags:
+        - 职位管理
+      summary: 更新职位信息
+      description: HR更新自己发布的职位信息
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 职位ID
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateJobRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobInfo'
+        '403':
+          description: 只能修改自己发布的职位
+
+    delete:
+      tags:
+        - 职位管理
+      summary: 删除职位
+      description: HR删除自己发布的职位
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 职位ID
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 只能删除自己发布的职位
+
+  /jobs/{jobId}/apply:
+    post:
+      tags:
+        - 职位管理
+      summary: 申请职位
+      description: 求职者申请指定职位
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 职位ID
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resumeId:
+                  type: integer
+                  description: 简历ID（可选）
+                coverLetter:
+                  type: string
+                  description: 求职信（可选）
+      responses:
+        '200':
+          description: 申请成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobApplication'
+
+  /hr/jobs/{jobId}/applications:
+    get:
+      tags:
+        - 职位管理
+      summary: 获取职位申请列表
+      description: HR获取自己发布职位的申请者列表
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 职位ID
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1, 2, 3, 4]
+          description: 申请状态筛选
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResult<JobApplication>'
+
+  /hr/jobs/applications/{applicationId}/status:
+    put:
+      tags:
+        - 职位管理
+      summary: 更新申请状态
+      description: HR更新求职者的申请状态
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 申请ID
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: integer
+                  enum: [0, 1, 2, 3, 4]
+                  description: 新的状态
+                feedback:
+                  type: string
+                  description: 反馈信息
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+
+  # ==================== 聊天服务接口 ====================
+  /chat/conversations:
+    get:
+      tags:
+        - 聊天服务
+      summary: 获取会话列表
+      description: 获取当前用户的所有聊天会话
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Conversation'
+
+  /chat/conversations/{userId}:
+    get:
+      tags:
+        - 聊天服务
+      summary: 获取与指定用户的聊天记录
+      description: 获取与指定用户的历史聊天记录
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 对方用户ID
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResult<ChatMessage>'
+
+    post:
+      tags:
+        - 聊天服务
+      summary: 发送消息
+      description: 向指定用户发送聊天消息（HTTP方式）
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 接收方用户ID
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  description: 消息内容
+                type:
+                  type: integer
+                  enum: [0, 1, 2]
+                  default: 0
+                  description: 消息类型 0-文本 1-图片 2-文件
+      responses:
+        '200':
+          description: 发送成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessage'
+
+  /chat/conversations/{userId}/read:
+    put:
+      tags:
+        - 聊天服务
+      summary: 标记消息为已读
+      description: 标记与指定用户的聊天消息为已读
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 对方用户ID
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 标记成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+
+  # ==================== WebSocket聊天接口 ====================
+  /ws/chat:
+    get:
+      tags:
+        - 聊天服务
+      summary: 建立WebSocket连接
+      description: |
+        建立WebSocket连接进行实时聊天，当聊天频率较高时自动切换为WebSocket。
+        
+        **连接URL**: ws://localhost:8080/ws/chat?token={token}
+        
+        **消息格式**:
+        - 发送消息: `{"type":"SEND","receiverId":123,"content":"你好","messageType":0}`
+        - 接收消息: `{"id":1,"senderId":123,"receiverId":456,"content":"你好","type":0,"sendTime":"2024-01-01T10:00:00"}`
+      security:
+        - BearerAuth: []
+      responses:
+        '101':
+          description: Switching Protocols
+
+  # ==================== AI面试接口 ====================
+  /ai/interview/start:
+    get:
+      tags:
+        - AI面试
+      summary: 开始AI模拟面试
+      description: 建立SSE连接开始AI模拟面试，连接将保持30分钟
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: SSE连接建立成功
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |
+                  event: welcome
+                  data: {"message": "欢迎参加Java岗位模拟面试", "sessionId": "abc123"}
+                  
+                  event: ai-question
+                  data: {"question": "请介绍一下Java的垃圾回收机制"}
+                  
+                  event: ai-response
+                  data: {"answer": "Java的垃圾回收机制..."}
+
+  /ai/interview/question:
+    post:
+      tags:
+        - AI面试
+      summary: 发送面试问题
+      description: 向AI发送面试问题或回答，需要先建立SSE连接
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - content
+              properties:
+                sessionId:
+                  type: string
+                  description: 面试会话ID
+                content:
+                  type: string
+                  description: 问题内容
+      responses:
+        '200':
+          description: 问题发送成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+
+  /ai/interview/history:
+    get:
+      tags:
+        - AI面试
+      summary: 获取AI面试历史记录
+      description: 获取用户的AI面试历史记录
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResult<AIInterviewHistory>'
+
+  # ==================== 文件上传接口 ====================
+  /upload/resume:
+    post:
+      tags:
+        - 文件上传
+      summary: 上传简历
+      description: 上传简历文件（支持PDF、DOC、DOCX格式，最大10MB）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 简历文件
+                title:
+                  type: string
+                  description: 简历标题
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fileId:
+                    type: integer
+                  fileName:
+                    type: string
+                  fileUrl:
+                    type: string
+                  fileSize:
+                    type: integer
+
+  /upload/avatar:
+    post:
+      tags:
+        - 文件上传
+      summary: 上传头像
+      description: 上传用户头像（支持JPG、PNG格式，最大2MB）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 头像文件
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatarUrl:
+                    type: string
+
+# ==================== 组件定义 ====================
+components:
+  schemas:
+    # 基本响应格式
+    Result:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "success"
+        data:
+          type: object
+
+    PageResult<JobInfo>:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/JobInfo'
+            totalElements:
+              type: integer
+            totalPages:
+              type: integer
+            size:
+              type: integer
+            number:
+              type: integer
+        timestamp:
+          type: integer
+
+    PageResult<ChatMessage>:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/ChatMessage'
+            totalElements:
+              type: integer
+            totalPages:
+              type: integer
+            size:
+              type: integer
+            number:
+              type: integer
+        timestamp:
+          type: integer
+
+    PageResult<AIInterviewHistory>:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/AIInterviewHistory'
+            totalElements:
+              type: integer
+            totalPages:
+              type: integer
+            size:
+              type: integer
+            number:
+              type: integer
+        timestamp:
+          type: integer
+
+    # 认证相关
+    LoginRequest:
+      type: object
+      required:
+        - phone
+        - password
+      properties:
+        phone:
+          type: string
+          example: "13800138000"
+        password:
+          type: string
+          example: "password123"
+
+    RegisterRequest:
+      type: object
+      required:
+        - phone
+        - password
+        - name
+        - role
+      properties:
+        phone:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+        role:
+          type: integer
+          enum: [0, 1]
+          description: "0-求职者, 1-HR"
+        avatar:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserProfile'
+
+    # 用户相关
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        uid:
+          type: string
+        phone:
+          type: string
+        name:
+          type: string
+        avatar:
+          type: string
+        role:
+          type: integer
+        roleName:
+          type: string
+        email:
+          type: string
+        createTime:
+          type: string
+          format: date-time
+
+    UserPublicInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        avatar:
+          type: string
+        role:
+          type: integer
+        roleName:
+          type: string
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        avatar:
+          type: string
+        email:
+          type: string
+
+    # 职位相关
+    CreateJobRequest:
+      type: object
+      required:
+        - title
+        - description
+        - requirements
+        - techStack
+      properties:
+        title:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        requirements:
+          type: string
+        techStack:
+          type: string
+        minSalary:
+          type: number
+          format: decimal
+        maxSalary:
+          type: number
+          format: decimal
+        workLocation:
+          type: string
+        experienceRequired:
+          type: string
+          enum: ["不限", "1-3年", "3-5年", "5年以上"]
+        educationRequired:
+          type: string
+          enum: ["不限", "大专", "本科", "硕士", "博士"]
+
+    UpdateJobRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        requirements:
+          type: string
+        techStack:
+          type: string
+        minSalary:
+          type: number
+        maxSalary:
+          type: number
+        workLocation:
+          type: string
+        status:
+          type: integer
+          enum: [0, 1]
+
+    JobInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        requirements:
+          type: string
+        techStack:
+          type: string
+          example: "Java,Spring Boot,MySQL,Redis"
+        hrId:
+          type: integer
+        hrName:
+          type: string
+        minSalary:
+          type: number
+        maxSalary:
+          type: number
+        workLocation:
+          type: string
+        experienceRequired:
+          type: string
+        educationRequired:
+          type: string
+        status:
+          type: integer
+        publishTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
+
+    JobApplication:
+      type: object
+      properties:
+        id:
+          type: integer
+        jobId:
+          type: integer
+        jobTitle:
+          type: string
+        userId:
+          type: integer
+        userName:
+          type: string
+        userAvatar:
+          type: string
+        status:
+          type: integer
+          enum: [0, 1, 2, 3, 4]
+        statusText:
+          type: string
+        applyTime:
+          type: string
+          format: date-time
+        resumeUrl:
+          type: string
+        coverLetter:
+          type: string
+
+    # 聊天相关
+    Conversation:
+      type: object
+      properties:
+        userId:
+          type: integer
+        userName:
+          type: string
+        userAvatar:
+          type: string
+        lastMessage:
+          type: string
+        lastMessageTime:
+          type: string
+          format: date-time
+        unreadCount:
+          type: integer
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        senderId:
+          type: integer
+        receiverId:
+          type: integer
+        content:
+          type: string
+        type:
+          type: integer
+          enum: [0, 1, 2]
+        readStatus:
+          type: integer
+          enum: [0, 1]
+        sendTime:
+          type: string
+          format: date-time
+
+    # AI面试相关
+    AIInterviewHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: string
+        jobTitle:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        evaluation:
+          type: string
+        totalQuestions:
+          type: integer
+
+    # WebSocket消息格式
+    WSChatMessage:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["SEND", "RECEIVE", "READ"]
+        messageId:
+          type: string
+        senderId:
+          type: integer
+        receiverId:
+          type: integer
+        content:
+          type: string
+        messageType:
+          type: integer
+          enum: [0, 1, 2]
+        timestamp:
+          type: integer
+          format: int64
+
+    WSHeartbeat:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["PING", "PONG"]
+        timestamp:
+          type: integer
+          format: int64
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        在请求头中添加：Authorization: Bearer {token}
+        
+        Token获取方式：
+        1. 调用登录接口获取token
+        2. Token有效期为7天
+        3. 过期后需要重新登录
+
+# ==================== WebSocket协议定义 ====================
+webhooks:
+  # WebSocket消息格式定义
+  chatMessage:
+    post:
+      description: WebSocket聊天消息事件
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/WSChatMessage'
+                - $ref: '#/components/schemas/WSHeartbeat'
+      responses:
+        '200':
+          description: 消息接收成功
+

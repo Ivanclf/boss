@@ -13,7 +13,8 @@ create table `user` (
     update_time datetime default current_timestamp on update current_timestamp comment '更新信息时间',
     deleted tinyint(1) comment '软删除标记',
 
-    key idx_phone(phone)
+    key idx_phone(phone),
+    unique key uk_phone_role(phone, role)
 ) comment '用户主表';
 
 create table `user_job_apply` (
