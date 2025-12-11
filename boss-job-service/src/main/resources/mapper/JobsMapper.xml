@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.boss.bossjobservice.mapper.JobsMapper">
+    <insert id="insert" parameterType="com.boss.bosscommon.pojo.entity.Job" useGeneratedKeys="true" keyProperty="uid">
+        INSERT INTO jobs_db.job
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="uid != null">
+                uid,
+            </if>
+            <if test="hrUid != null">
+                hr_uid,
+            </if>
+            <if test="title != null">
+                title,
+            </if>
+            <if test="description != null">
+                `description`,
+            </if>
+            <if test="requirement != null">
+                requirement,
+            </if>
+            <if test="city != null">
+                city,
+            </if>
+            <if test="salaryMin != null">
+                salary_min,
+            </if>
+            <if test="salaryMax != null">
+                salary_max,
+            </if>
+            <if test="status != null">
+                `status`,
+            </if>
+            <if test="publishTime != null">
+                publish_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="uid != null">
+                #{uid},
+            </if>
+            <if test="hrUid != null">
+                #{hrUid},
+            </if>
+            <if test="title != null">
+                #{title},
+            </if>
+            <if test="description != null">
+                #{description},
+            </if>
+            <if test="requirement != null">
+                #{requirement},
+            </if>
+            <if test="city != null">
+                #{city},
+            </if>
+            <if test="salaryMin != null">
+                #{salaryMin},
+            </if>
+            <if test="salaryMax != null">
+                #{salaryMax},
+            </if>
+            <if test="status != null">
+                #{status},
+            </if>
+            <if test="publishTime != null">
+                #{publishTime},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime},
+            </if>
+        </trim>
+    </insert>
+</mapper>

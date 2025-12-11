@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.boss.bossjobservice.mapper.JobTagMapper">
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        insert into jobs_db.job_tag (job_uid, tag) values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.jobUid}, #{item.tag})
+        </foreach>
+    </insert>
+
+</mapper>

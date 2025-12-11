@@ -11,7 +11,7 @@ create table `user` (
     role tinyint(1) not null default 0 comment '角色，0 为求职者，1 为 HR',
     create_time datetime default current_timestamp comment '注册时间',
     update_time datetime default current_timestamp on update current_timestamp comment '更新信息时间',
-    deleted tinyint(1) comment '软删除标记',
+    deleted tinyint(1) not null comment '软删除标记',
 
     key idx_phone(phone),
     unique key uk_phone_role(phone, role)
@@ -26,7 +26,7 @@ create table `user_job_apply` (
     apply_msg varchar(500) comment '投递附言',
     create_time datetime default current_timestamp comment '投递时间',
     update_time datetime default current_timestamp on update current_timestamp comment '更新信息时间',
-    deleted tinyint(1) comment '软删除标记',
+    deleted tinyint(1) not null comment '软删除标记',
 
     unique key uk_can_job(candidate_uid, job_uid),
 

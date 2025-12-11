@@ -14,6 +14,7 @@ create table `job` (
     status tinyint(1) default 0 comment '是否开放',
     publish_time datetime default current_timestamp comment '发布时间',
     update_time datetime default current_timestamp on update current_timestamp comment '更新时间',
+    deleted tinyint(1) default 0 not null comment '软删除标签',
 
     key idx_hr(hr_uid),
     key idx_city_salary(city, salary_min, salary_max),

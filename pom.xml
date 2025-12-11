@@ -20,7 +20,7 @@
         <module>boss-common</module>
         <module>boss-gateway</module>
         <module>boss-user-service</module>
-<!--        <module>boss-job-service</module>-->
+        <module>boss-job-service</module>
 <!--        <module>boss-chat-service</module>-->
 <!--        <module>boss-ai-service</module>-->
 <!--        <module>boss-search-service</module>-->
@@ -69,5 +69,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 </project>

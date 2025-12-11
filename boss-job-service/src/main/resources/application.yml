@@ -1,0 +1,36 @@
+server:
+  port: 12000
+spring:
+  profiles:
+    active: dev
+  application:
+    name: boss-job-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${spring.datasource.host}:${spring.datasource.port}/${spring.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+  data:
+    redis:
+      host: ${spring.data.redis.host}
+      port: ${spring.data.redis.port}
+      password: ${spring.data.redis.password}
+      database: ${spring.data.redis.database}
+      lettuce:
+        shutdown-timeout: 100ms
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 10s
+  cloud:
+    nacos:
+      server-addr: ${spring.cloud.nacos.server-addr}
+      discovery:
+        cluster-name: XA
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.activity.manage.pojo.entity
+  configuration:
+    map-underscore-to-camel-case: true

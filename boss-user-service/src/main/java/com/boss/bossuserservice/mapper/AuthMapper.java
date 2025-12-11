@@ -13,6 +13,6 @@ public interface AuthMapper {
 
     void insert(User user);
 
-    @Select("select * from users_db.user where uid = #{uid} ")
+    @Select("select * from users_db.user where uid = #{uid} and deleted = 0")
     User queryByUid(Long uid);
 }

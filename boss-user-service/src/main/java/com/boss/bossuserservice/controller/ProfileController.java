@@ -7,9 +7,11 @@ import com.boss.bossuserservice.service.ProfileService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotNull;
 import java.net.http.HttpRequest;
 
 import static com.boss.bosscommon.util.Md5Util.string2Md5;
+import static com.boss.bosscommon.util.TokenUtil.getToken;
 
 @RestController
 @RequestMapping("/user/profile")
@@ -19,13 +21,13 @@ public class ProfileController {
 
     @GetMapping
     public UserBasicVO getBasicInfo(HttpRequest httpRequest) {
-        String token = httpRequest.headers().map().get("Authorization").getFirst();
+        String token = getToken(httpRequest);
         return profileService.getBasicInfo(token);
     }
 
     @PutMapping
     public void updateUserInfo(HttpRequest httpRequest, @RequestBody UserUpdateDTO userUpdateDTO) {
-        String token = httpRequest.headers().map().get("Authorization").getFirst();
+        String token = getToken(httpRequest);
         if(userUpdateDTO.getPassword() != null) {
             userUpdateDTO.setPassword(string2Md5(userUpdateDTO.getPassword()));
         }
@@ -34,10 +36,7 @@ public class ProfileController {
 
 
     @GetMapping("/{uid}")
-    public UserBasicVO getUserInfo(@PathVariable Long uid) {
-        if(uid == null) {
-            throw new clientException("请输入必要的参数");
-        }
+    public UserBasicVO getUserInfo(@NotNull @PathVariable Long uid) {
         return profileService.getUserInfo(uid);
     }
 }

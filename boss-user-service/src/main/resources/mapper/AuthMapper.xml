@@ -14,6 +14,7 @@
         select * from users_db.user
         where phone = #{phone}
             and role = #{role}
+            and deleted = 0
     </select>
 
     <insert id="insert" parameterType="com.boss.bosscommon.pojo.entity.User">
