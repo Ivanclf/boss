@@ -1,7 +1,7 @@
 package com.boss.bossuserservice.controller;
 
 import cn.hutool.core.util.RandomUtil;
-import com.boss.bosscommon.exception.errorException;
+import com.boss.bosscommon.exception.clientException;
 import com.boss.bosscommon.pojo.dto.UserLoginPasswordDTO;
 import com.boss.bosscommon.pojo.dto.UserLogoutDTO;
 import com.boss.bosscommon.pojo.dto.UserRegistryDTO;
@@ -27,7 +27,7 @@ public class AuthController {
     @PostMapping("/login/password")
     public UserBasicVO loginByPassWord(@RequestBody UserLoginPasswordDTO userLoginPasswordDTO) {
         if(!isPhoneValid(userLoginPasswordDTO.getPhone())) {
-            throw new errorException("请输入正确的手机号");
+            throw new clientException("请输入正确的手机号");
         }
         userLoginPasswordDTO.setPassword(string2Md5(userLoginPasswordDTO.getPassword()));
         return authService.loginByPassword(userLoginPasswordDTO);
@@ -36,7 +36,7 @@ public class AuthController {
     @PostMapping("/register")
     public UserBasicVO registerByPassword(@RequestBody UserRegistryDTO userRegistryDTO) {
         if(!isPhoneValid(userRegistryDTO.getPhone())) {
-            throw new errorException("请输入正确的手机号");
+            throw new clientException("请输入正确的手机号");
         }
         userRegistryDTO.setPassword(string2Md5(userRegistryDTO.getPassword()));
         if(userRegistryDTO.getName().isBlank()) {

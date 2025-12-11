@@ -3,7 +3,7 @@ package com.boss.bossuserservice.service.serviceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
-import com.boss.bosscommon.exception.errorException;
+import com.boss.bosscommon.exception.clientException;
 import com.boss.bosscommon.pojo.dto.UserLoginPasswordDTO;
 import com.boss.bosscommon.pojo.dto.UserLogoutDTO;
 import com.boss.bosscommon.pojo.dto.UserRegistryDTO;
@@ -44,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
 
         User user = authMapper.queryByPhoneAndPassWord(phone, password, role);
         if(user == null) {
-            throw new errorException("请输入正确的账号和密码");
+            throw new clientException("请输入正确的账号和密码");
         }
 
         UserBasicVO userBasicVO = BeanUtil.copyProperties(user, UserBasicVO.class);
@@ -69,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
 
         User user = authMapper.queryByPhone(phone, role);
         if(user != null) {
-            throw new errorException("用户已存在");
+            throw new clientException("用户已存在");
         }
 
         user = BeanUtil.copyProperties(userRegistryDTO, User.class);
@@ -101,7 +101,7 @@ public class AuthServiceImpl implements AuthService {
 
         Map<Object, Object> map = stringRedisTemplate.opsForHash().entries(key);
         if(map.isEmpty() || map.get("role") != role) {
-            throw new errorException("用户已登出");
+            throw new clientException("用户已登出");
         }
 
         stringRedisTemplate.opsForHash().delete(key);

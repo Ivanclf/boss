@@ -1,6 +1,6 @@
 package com.boss.bosscommon.util;
 
-import com.boss.bosscommon.exception.errorException;
+import com.boss.bosscommon.exception.clientException;
 
 public class SnowFlakeGenerator {
     // 起始时间戳常量，2023-01-01 00:00:00
@@ -80,7 +80,7 @@ public class SnowFlakeGenerator {
         
         // 如果当前时间小于上一次ID生成时间，说明系统时钟回退过，抛出异常
         if (currentTimestamp < lastTimestamp) {
-            throw new errorException("时钟向后移动，拒绝生成ID");
+            throw new clientException("时钟向后移动，拒绝生成ID");
         }
         
         // 如果是同一毫秒内生成的，则进行序列号递增
@@ -99,7 +99,7 @@ public class SnowFlakeGenerator {
         
         // 检查时间戳是否有效（避免生成负数ID）
         if (currentTimestamp < START_TIMESTAMP) {
-            throw new errorException("系统时间错误，无法生成有效的ID");
+            throw new clientException("系统时间错误，无法生成有效的ID");
         }
         
         // 组装ID
