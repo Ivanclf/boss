@@ -8,4 +8,7 @@ spring:
   cloud:
     nacos:
       server-addr: ${spring.cloud.nacos.server-addr}
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 

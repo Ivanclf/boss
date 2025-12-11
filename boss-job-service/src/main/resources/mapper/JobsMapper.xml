@@ -75,4 +75,22 @@
             </if>
         </trim>
     </insert>
+
+    <update id="update" parameterType="com.boss.bosscommon.pojo.entity.Job">
+        update jobs_db.job
+        <set>
+            <if test="hrUid != null">hr_uid = #{hrUid},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="description != null">`description` = #{description},</if>
+            <if test="requirement != null">requirement = #{requirement},</if>
+            <if test="city != null">city = #{city},</if>
+            <if test="salaryMin != null">salary_min = #{salaryMin},</if>
+            <if test="salaryMax != null">salary_max = #{salaryMax},</if>
+            <if test="status != null">`status` = #{status},</if>
+            <if test="publishTime != null">publish_time = #{publishTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleted != null">deleted = #{deleted},</if>
+        </set>
+        where uid = #{uid}
+    </update>
 </mapper>

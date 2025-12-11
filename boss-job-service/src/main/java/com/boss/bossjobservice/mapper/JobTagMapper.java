@@ -1,6 +1,7 @@
 package com.boss.bossjobservice.mapper;
 
 import com.boss.bosscommon.pojo.entity.JobTag;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -12,4 +13,7 @@ public interface JobTagMapper {
 
     @Select("select * from job_db.job_tag where job_uid = #{JobUid} ")
     List<JobTag> getTagsByUid(Long jobUid);
+
+    @Delete("delete from job_db.job_tag where job_uid = #{uid} ")
+    void deleteByJobUid(Long uid);
 }

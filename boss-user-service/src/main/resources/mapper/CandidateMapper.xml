@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.boss.bossuserservice.mapper.CandidateMapper">
+    <insert id="insertUserJobApply" parameterType="com.boss.bosscommon.pojo.entity.UserJobApply">
+        insert into user_job_apply
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="candidateUid != null">candidate_uid,</if>
+            <if test="hrUid != null">hr_uid,</if>
+            <if test="jobUid != null">job_uid,</if>
+            <if test="status != null">status,</if>
+            <if test="applyMsg != null">apply_msg,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleted != null">deleted,</if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="candidateUid != null">#{candidateUid},</if>
+            <if test="hrUid != null">#{hrUid},</if>
+            <if test="jobUid != null">#{jobUid},</if>
+            <if test="status != null">#{status},</if>
+            <if test="applyMsg != null">#{applyMsg},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleted != null">#{deleted},</if>
+        </trim>
+    </insert>
+</mapper>

@@ -25,4 +25,5 @@ public class Job implements Serializable {
     private Integer status;
     private LocalDateTime publishTime;
     private LocalDateTime updateTime;
+    private Integer deleted;
 }

@@ -10,4 +10,6 @@ public interface JobsMapper {
 
     @Select("select * from job_db.job where uid = #{uid} and deleted = 0")
     Job getJobByUid(Long uid);
+
+    void update(Job job);
 }

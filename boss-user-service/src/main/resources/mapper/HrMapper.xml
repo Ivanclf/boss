@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.boss.bossuserservice.mapper.HrMapper">
+    <select id="getApplyList" parameterType="com.boss.bosscommon.pojo.entity.UserJobApply"
+            resultType="com.boss.bosscommon.pojo.entity.UserJobApply">
+        SELECT id, candidate_uid, hr_uid, job_uid, status, apply_msg, create_time, update_time, deleted
+        FROM user_job_apply
+        <where>
+            <if test="id != null">AND id = #{id}</if>
+            <if test="candidateUid != null">AND candidate_uid = #{candidateUid}</if>
+            <if test="hrUid != null">AND hr_uid = #{hrUid}</if>
+            <if test="jobUid != null">AND job_uid = #{jobUid}</if>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="applyMsg != null and applyMsg != ''">AND apply_msg LIKE CONCAT('%', #{applyMsg}, '%')</if>
+            <if test="deleted != null">AND deleted = #{deleted}</if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <update id="update" parameterType="com.boss.bosscommon.pojo.entity.UserJobApply">
+        UPDATE user_job_apply
+        <set>
+            <if test="candidateUid != null">candidate_uid = #{candidateUid},</if>
+            <if test="hrUid != null">hr_uid = #{hrUid},</if>
+            <if test="jobUid != null">job_uid = #{jobUid},</if>
+            <if test="status != null">`status` = #{status},</if>
+            <if test="applyMsg != null">apply_msg = #{applyMsg},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleted != null">deleted = #{deleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+</mapper>

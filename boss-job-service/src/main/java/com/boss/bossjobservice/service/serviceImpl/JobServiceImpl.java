@@ -73,8 +73,21 @@ public class JobServiceImpl implements JobsService {
     }
 
     @Override
+    @Transactional
     public void update(JobUpdateDTO jobUpdateDTO) {
-        // todo 实现更新逻辑
-        return;
+        Job job = BeanUtil.copyProperties(jobUpdateDTO, Job.class);
+
+        Long uid = jobUpdateDTO.getUid();
+        List<String> tags = jobUpdateDTO.getTags();
+        List<JobTag> jobTags = new ArrayList<>();
+        for(String tag : tags) {
+            jobTags.add(new JobTag(null, uid, tag));
+        }
+
+        job.setUpdateTime(LocalDateTime.now());
+
+        jobsMapper.update(job);
+        jobTagMapper.deleteByJobUid(uid);
+        jobTagMapper.insertBatch(jobTags);
     }
 }
