@@ -8,12 +8,7 @@ import com.boss.bosscommon.pojo.dto.UserRegistryDTO;
 import com.boss.bosscommon.pojo.vo.UserBasicVO;
 import com.boss.bossuserservice.service.AuthService;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.net.http.HttpRequest;
+import org.springframework.web.bind.annotation.*;
 
 import static com.boss.bosscommon.util.Md5Util.string2Md5;
 import static com.boss.bosscommon.util.RegexUtil.isPhoneValid;
@@ -46,8 +41,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public void logout(HttpRequest httpRequest, @RequestBody UserLogoutDTO userLogoutDTO) {
-        String token = httpRequest.headers().map().get("Authorization").getFirst();
+    public void logout(@RequestHeader("authorization") String token, @RequestBody UserLogoutDTO userLogoutDTO) {
         authService.logout(userLogoutDTO, token);
     }
 }

@@ -21,8 +21,8 @@
         <module>boss-gateway</module>
         <module>boss-user-service</module>
         <module>boss-job-service</module>
-<!--        <module>boss-chat-service</module>-->
-<!--        <module>boss-ai-service</module>-->
+        <module>boss-chat-service</module>
+        <module>boss-ai-service</module>
 <!--        <module>boss-search-service</module>-->
     </modules>
 

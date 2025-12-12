@@ -10,9 +10,6 @@ import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
-import java.net.http.HttpRequest;
-
-import static com.boss.bosscommon.util.TokenUtil.getToken;
 
 @RestController
 @RequestMapping("/jobs")
@@ -22,7 +19,7 @@ public class JobsController {
     private JobsService jobsService;
 
     @PostMapping
-    public void insertJobs(HttpRequest httpRequest, @RequestBody JobInsertDTO jobInsertDTO) {
+    public void insertJobs(@RequestHeader("authorization") String token, @RequestBody JobInsertDTO jobInsertDTO) {
         if(jobInsertDTO.getSalaryMax() * jobInsertDTO.getSalaryMin() < 0) {
             throw new clientException("输入的薪资金额不合理");
         }
@@ -32,7 +29,6 @@ public class JobsController {
         if(jobInsertDTO.getTags() == null || jobInsertDTO.getTags().isEmpty()) {
             throw new clientException("请输入标签");
         }
-        String token = getToken(httpRequest);
         jobsService.insert(token, jobInsertDTO);
     }
 

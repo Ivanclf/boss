@@ -13,7 +13,7 @@
             <if test="jobUid != null">AND job_uid = #{jobUid}</if>
             <if test="status != null">AND status = #{status}</if>
             <if test="applyMsg != null and applyMsg != ''">AND apply_msg LIKE CONCAT('%', #{applyMsg}, '%')</if>
-            <if test="deleted != null">AND deleted = #{deleted}</if>
+            <if test="deleted != null">AND deleted = 0</if>
         </where>
         ORDER BY create_time DESC
     </select>

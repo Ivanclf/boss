@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boss.bosschatservice.mapper.ConversationMapper">
+
+    <select id="getAllRelatedChat" resultType="com.boss.bosscommon.pojo.entity.ChatRecord"
+            parameterType="java.lang.Long">
+        SELECT * FROM (
+            SELECT *,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY CASE WHEN from_uid = #{userUid} THEN to_uid ELSE from_uid END
+                       ORDER BY create_time DESC
+                   ) as rn
+            FROM chat_db.chat_record
+            WHERE (from_uid = #{userUid} OR to_uid = #{userUid})
+              AND deleted = 0
+        ) t WHERE rn = 1
+    </select>
+
+    <select id="getChatByUids" resultType="com.boss.bosscommon.pojo.entity.ChatRecord">
+        select * from chat_db.chat_record
+        where from_uid = #{fromUid} and to_uid = #{toUid} and deleted = 0
+    </select>
+
+        <insert id="insertChatRecord" parameterType="com.boss.bosscommon.pojo.entity.ChatRecord">
+            INSERT INTO chat_db.chat_record
+            (from_uid, to_uid, context, status, create_time, deleted)
+            VALUES
+            (#{fromUid}, #{toUid}, #{context}, #{status}, #{createTime}, #{deleted})
+        </insert>
+</mapper>

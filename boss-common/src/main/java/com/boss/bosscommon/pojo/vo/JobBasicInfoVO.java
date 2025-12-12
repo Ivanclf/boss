@@ -1,6 +1,5 @@
 package com.boss.bosscommon.pojo.vo;
 
-import com.boss.bosscommon.pojo.entity.JobTag;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

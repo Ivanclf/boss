@@ -14,21 +14,17 @@ info:
     - 所有HTTP请求经过网关统一处理，返回格式为Result<T>
     - 服务间通信直接返回业务对象
     - 错误码统一约定：
-      - 200: 成功
-      - 400: 请求参数错误
-      - 401: 未授权或token无效
-      - 403: 权限不足
-      - 404: 资源不存在
-      - 500: 服务器内部错误
+      - 1: 成功
+      - 0: 请求参数错误或其他失败
   version: 1.0.0
   contact:
     name: 技术支持
     email: support@boss-platform.com
 
 servers:
-  - url: http://localhost:8080/api
+  - url: http://localhost:8080
     description: 本地开发环境
-  - url: https://api.boss-platform.com/api
+  - url: https://api.boss-platform.com
     description: 生产环境
 
 tags:
@@ -47,25 +43,25 @@ tags:
 
 paths:
   # ==================== 用户认证相关接口 ====================
-  /user/auth/login:
+  /user/auth/login/password:
     post:
       tags:
         - 用户认证
-      summary: 用户登录
+      summary: 用户密码登录
       description: 使用手机号和密码登录系统
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: '#/components/schemas/UserLoginPasswordDTO'
       responses:
         '200':
           description: 登录成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
+                $ref: '#/components/schemas/UserBasicVO'
         '400':
           description: 参数错误
         '401':
@@ -82,14 +78,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterRequest'
+              $ref: '#/components/schemas/UserRegistryDTO'
       responses:
         '200':
           description: 注册成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Result'
+                $ref: '#/components/schemas/UserBasicVO'
         '400':
           description: 参数错误或手机号已存在
 
@@ -101,6 +97,12 @@ paths:
       description: 注销当前登录的token
       security:
         - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogoutDTO'
       responses:
         '200':
           description: 登出成功
@@ -124,7 +126,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfile'
+                $ref: '#/components/schemas/UserBasicVO'
         '401':
           description: 未认证
 
@@ -140,39 +142,38 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UserUpdateDTO'
       responses:
         '200':
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfile'
+                $ref: '#/components/schemas/Result'
         '400':
           description: 参数错误
 
-  /user/profile/{userId}:
+  /user/profile/{uid}:
     get:
       tags:
         - 用户管理
       summary: 获取指定用户信息
-      description: 根据用户ID获取用户公开信息（仅限HR查看求职者或求职者查看HR）
+      description: 根据用户ID获取用户公开信息
       parameters:
-        - name: userId
+        - name: uid
           in: path
           required: true
           schema:
             type: integer
+            format: int64
           description: 用户ID
-      security:
-        - BearerAuth: []
       responses:
         '200':
           description: 获取成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserPublicInfo'
+                $ref: '#/components/schemas/UserBasicVO'
         '403':
           description: 权限不足
 
@@ -190,14 +191,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateJobRequest'
+              $ref: '#/components/schemas/JobInsertDTO'
       responses:
         '200':
           description: 发布成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JobInfo'
+                $ref: '#/components/schemas/Result'
         '401':
           description: 需要HR权限
 
@@ -257,20 +258,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageResult<JobInfo>'
+                $ref: '#/components/schemas/PageResult_JobInfo'
 
-  /jobs/{jobId}:
+  /jobs/{uid}:
     get:
       tags:
         - 职位管理
       summary: 获取职位详情
       description: 获取指定职位的详细信息
       parameters:
-        - name: jobId
+        - name: uid
           in: path
           required: true
           schema:
             type: integer
+            format: int64
           description: 职位ID
       responses:
         '200':
@@ -278,7 +280,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JobInfo'
+                $ref: '#/components/schemas/JobBasicInfoVO'
         '404':
           description: 职位不存在
 
@@ -288,11 +290,12 @@ paths:
       summary: 更新职位信息
       description: HR更新自己发布的职位信息
       parameters:
-        - name: jobId
+        - name: uid
           in: path
           required: true
           schema:
             type: integer
+            format: int64
           description: 职位ID
       security:
         - BearerAuth: []
@@ -301,53 +304,30 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateJobRequest'
+              $ref: '#/components/schemas/JobUpdateDTO'
       responses:
         '200':
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JobInfo'
+                $ref: '#/components/schemas/Result'
         '403':
           description: 只能修改自己发布的职位
 
-    delete:
-      tags:
-        - 职位管理
-      summary: 删除职位
-      description: HR删除自己发布的职位
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: 职位ID
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 删除成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Result'
-        '403':
-          description: 只能删除自己发布的职位
-
-  /jobs/{jobId}/apply:
+  /jobs/{jobUid}/apply:
     post:
       tags:
         - 职位管理
       summary: 申请职位
       description: 求职者申请指定职位
       parameters:
-        - name: jobId
+        - name: jobUid
           in: path
           required: true
           schema:
             type: integer
+            format: int64
           description: 职位ID
       security:
         - BearerAuth: []
@@ -360,6 +340,7 @@ paths:
               properties:
                 resumeId:
                   type: integer
+                  format: int64
                   description: 简历ID（可选）
                 coverLetter:
                   type: string
@@ -371,19 +352,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobApplication'
+        '400':
+          description: 参数错误
 
-  /hr/jobs/{jobId}/applications:
+  /hr/jobs/{jobUid}/applications:
     get:
       tags:
         - 职位管理
       summary: 获取职位申请列表
       description: HR获取自己发布职位的申请者列表
       parameters:
-        - name: jobId
+        - name: jobUid
           in: path
           required: true
           schema:
             type: integer
+            format: int64
           description: 职位ID
         - name: status
           in: query
@@ -412,7 +396,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageResult<JobApplication>'
+                $ref: '#/components/schemas/PageResult_JobApplication'
 
   /hr/jobs/applications/{applicationId}/status:
     put:
@@ -426,6 +410,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
           description: 申请ID
       security:
         - BearerAuth: []
@@ -452,6 +437,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数错误
 
   # ==================== 聊天服务接口 ====================
   /chat/conversations:
@@ -484,6 +471,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
           description: 对方用户ID
         - name: page
           in: query
@@ -505,7 +493,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageResult<ChatMessage>'
+                $ref: '#/components/schemas/PageResult_ChatMessage'
 
     post:
       tags:
@@ -518,6 +506,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
           description: 接收方用户ID
       security:
         - BearerAuth: []
@@ -545,6 +534,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ChatMessage'
+        '400':
+          description: 参数错误
 
   /chat/conversations/{userId}/read:
     put:
@@ -558,6 +549,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
           description: 对方用户ID
       security:
         - BearerAuth: []
@@ -568,6 +560,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数错误
 
   # ==================== WebSocket聊天接口 ====================
   /ws/chat:
@@ -646,6 +640,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数错误
 
   /ai/interview/history:
     get:
@@ -674,7 +670,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageResult<AIInterviewHistory>'
+                $ref: '#/components/schemas/PageResult_AIInterviewHistory'
 
   # ==================== 文件上传接口 ====================
   /upload/resume:
@@ -709,12 +705,16 @@ paths:
                 properties:
                   fileId:
                     type: integer
+                    format: int64
                   fileName:
                     type: string
                   fileUrl:
                     type: string
                   fileSize:
                     type: integer
+                    format: int64
+        '400':
+          description: 参数错误
 
   /upload/avatar:
     post:
@@ -745,6 +745,8 @@ paths:
                 properties:
                   avatarUrl:
                     type: string
+        '400':
+          description: 参数错误
 
 # ==================== 组件定义 ====================
 components:
@@ -755,19 +757,19 @@ components:
       properties:
         code:
           type: integer
-          example: 200
-        message:
+          example: 1
+        msg:
           type: string
           example: "success"
         data:
           type: object
 
-    PageResult<JobInfo>:
+    PageResult_JobInfo:
       type: object
       properties:
         code:
           type: integer
-        message:
+        msg:
           type: string
         data:
           type: object
@@ -786,13 +788,14 @@ components:
               type: integer
         timestamp:
           type: integer
+          format: int64
 
-    PageResult<ChatMessage>:
+    PageResult_ChatMessage:
       type: object
       properties:
         code:
           type: integer
-        message:
+        msg:
           type: string
         data:
           type: object
@@ -811,13 +814,14 @@ components:
               type: integer
         timestamp:
           type: integer
+          format: int64
 
-    PageResult<AIInterviewHistory>:
+    PageResult_AIInterviewHistory:
       type: object
       properties:
         code:
           type: integer
-        message:
+        msg:
           type: string
         data:
           type: object
@@ -836,180 +840,202 @@ components:
               type: integer
         timestamp:
           type: integer
+          format: int64
 
-    # 认证相关
-    LoginRequest:
+    PageResult_JobApplication:
       type: object
-      required:
-        - phone
-        - password
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/JobApplication'
+            totalElements:
+              type: integer
+            totalPages:
+              type: integer
+            size:
+              type: integer
+            number:
+              type: integer
+        timestamp:
+          type: integer
+          format: int64
+
+    # 认证相关DTO
+    UserLoginPasswordDTO:
+      type: object
       properties:
         phone:
           type: string
-          example: "13800138000"
         password:
-          type: string
-          example: "password123"
-
-    RegisterRequest:
-      type: object
-      required:
-        - phone
-        - password
-        - name
-        - role
-      properties:
-        phone:
-          type: string
-        password:
-          type: string
-        name:
           type: string
         role:
           type: integer
-          enum: [0, 1]
           description: "0-求职者, 1-HR"
-        avatar:
-          type: string
 
-    AuthResponse:
+    UserRegistryDTO:
       type: object
       properties:
-        token:
+        phone:
           type: string
-        user:
-          $ref: '#/components/schemas/UserProfile'
+        password:
+          type: string
+        role:
+          type: integer
+          description: "0-求职者, 1-HR"
+        name:
+          type: string
+
+    UserLogoutDTO:
+      type: object
+      properties:
+        phone:
+          type: string
+        role:
+          type: integer
 
     # 用户相关
-    UserProfile:
+    UserBasicVO:
       type: object
       properties:
-        id:
-          type: integer
         uid:
+          type: integer
+          format: int64
+        name:
           type: string
         phone:
           type: string
+        avatar:
+          type: string
+        role:
+          type: integer
+        authorization:
+          type: string
+
+    UserUpdateDTO:
+      type: object
+      properties:
         name:
+          type: string
+        password:
+          type: string
+        phone:
           type: string
         avatar:
           type: string
         role:
           type: integer
-        roleName:
-          type: string
-        email:
-          type: string
-        createTime:
-          type: string
-          format: date-time
-
-    UserPublicInfo:
-      type: object
-      properties:
-        id:
+        deleted:
           type: integer
-        name:
-          type: string
-        avatar:
-          type: string
-        role:
-          type: integer
-        roleName:
-          type: string
-
-    UpdateUserRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        avatar:
-          type: string
-        email:
-          type: string
 
     # 职位相关
-    CreateJobRequest:
+    JobInsertDTO:
       type: object
-      required:
-        - title
-        - description
-        - requirements
-        - techStack
       properties:
+        hrUid:
+          type: integer
+          format: int64
         title:
           type: string
-          maxLength: 100
         description:
           type: string
-        requirements:
+        requirement:
           type: string
-        techStack:
+        city:
           type: string
-        minSalary:
-          type: number
-          format: decimal
-        maxSalary:
-          type: number
-          format: decimal
-        workLocation:
-          type: string
-        experienceRequired:
-          type: string
-          enum: ["不限", "1-3年", "3-5年", "5年以上"]
-        educationRequired:
-          type: string
-          enum: ["不限", "大专", "本科", "硕士", "博士"]
+        salaryMin:
+          type: integer
+        salaryMax:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
 
-    UpdateJobRequest:
+    JobUpdateDTO:
       type: object
       properties:
+        uid:
+          type: integer
+          format: int64
+        hrUid:
+          type: integer
+          format: int64
         title:
           type: string
         description:
           type: string
-        requirements:
+        requirement:
           type: string
-        techStack:
+        city:
           type: string
-        minSalary:
-          type: number
-        maxSalary:
-          type: number
-        workLocation:
-          type: string
+        salaryMin:
+          type: integer
+        salaryMax:
+          type: integer
         status:
           type: integer
-          enum: [0, 1]
+        tags:
+          type: array
+          items:
+            type: string
+
+    JobBasicInfoVO:
+      type: object
+      properties:
+        uid:
+          type: integer
+          format: int64
+        hrUid:
+          type: integer
+          format: int64
+        title:
+          type: string
+        description:
+          type: string
+        requirement:
+          type: string
+        city:
+          type: string
+        salaryMin:
+          type: integer
+        salaryMax:
+          type: integer
+        status:
+          type: integer
+        jobTags:
+          type: array
+          items:
+            type: string
 
     JobInfo:
       type: object
       properties:
-        id:
+        uid:
           type: integer
+          format: int64
+        hrUid:
+          type: integer
+          format: int64
         title:
           type: string
         description:
           type: string
-        requirements:
+        requirement:
           type: string
-        techStack:
+        city:
           type: string
-          example: "Java,Spring Boot,MySQL,Redis"
-        hrId:
+        salaryMin:
           type: integer
-        hrName:
-          type: string
-        minSalary:
-          type: number
-        maxSalary:
-          type: number
-        workLocation:
-          type: string
-        experienceRequired:
-          type: string
-        educationRequired:
-          type: string
+        salaryMax:
+          type: integer
         status:
           type: integer
         publishTime:
@@ -1024,12 +1050,15 @@ components:
       properties:
         id:
           type: integer
+          format: int64
         jobId:
           type: integer
+          format: int64
         jobTitle:
           type: string
         userId:
           type: integer
+          format: int64
         userName:
           type: string
         userAvatar:
@@ -1053,6 +1082,7 @@ components:
       properties:
         userId:
           type: integer
+          format: int64
         userName:
           type: string
         userAvatar:
@@ -1070,10 +1100,13 @@ components:
       properties:
         id:
           type: integer
+          format: int64
         senderId:
           type: integer
+          format: int64
         receiverId:
           type: integer
+          format: int64
         content:
           type: string
         type:
@@ -1092,6 +1125,7 @@ components:
       properties:
         id:
           type: integer
+          format: int64
         sessionId:
           type: string
         jobTitle:
@@ -1120,8 +1154,10 @@ components:
           type: string
         senderId:
           type: integer
+          format: int64
         receiverId:
           type: integer
+          format: int64
         content:
           type: string
         messageType:
@@ -1170,4 +1206,3 @@ webhooks:
       responses:
         '200':
           description: 消息接收成功
-

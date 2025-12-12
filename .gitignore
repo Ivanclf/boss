@@ -1,5 +1,5 @@
 .idea/
-.vascode/
+.vscode/
 .mvn/
 **/.mvn
 **/mvnw.cmd

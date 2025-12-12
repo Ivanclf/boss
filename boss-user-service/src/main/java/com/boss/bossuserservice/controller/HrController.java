@@ -8,10 +8,6 @@ import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.http.HttpRequest;
-
-import static com.boss.bosscommon.util.TokenUtil.getToken;
-
 @RestController
 @RequestMapping("/hr")
 public class HrController {
@@ -21,13 +17,12 @@ public class HrController {
 
     @GetMapping("/applications")
     public PageInfo<UserHrShowVO> getApplyList(
-            HttpRequest httpRequest,
+            @RequestHeader("authorization") String token,
             @RequestParam(required = false) Long jobUid,
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") int pageNum,
             @RequestParam(defaultValue = "10") int pageSize
     ) {
-        String token = getToken(httpRequest);
         return hrService.hetApplyList(token, jobUid, status, pageNum, pageSize);
     }
 

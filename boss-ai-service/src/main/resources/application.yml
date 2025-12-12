@@ -1,0 +1,33 @@
+server:
+  port: 9060
+spring:
+  application:
+    name: boss-ai-service
+  profiles:
+    active: dev
+  ai:
+    ollama:
+      base-url: ${spring.ai.ollama.base-url}
+      chat:
+        model: deepseek-r1:8b
+  data:
+    redis:
+      host: ${spring.data.redis.host}
+      port: ${spring.data.redis.port}
+      password: ${spring.data.redis.password}
+      database: ${spring.data.redis.database}
+      lettuce:
+        shutdown-timeout: 100ms
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 10s
+  cloud:
+    nacos:
+      server-addr: ${spring.cloud.nacos.server-addr}
+      discovery:
+        cluster-name: XA
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration

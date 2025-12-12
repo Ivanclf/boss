@@ -40,8 +40,7 @@ public class ResponseWrapperFilter implements GlobalFilter {
                     return super.writeWith(body);
                 }
 
-                if(body instanceof Flux) {
-                    Flux<? extends DataBuffer> fluxBody = (Flux<? extends DataBuffer>) body;
+                if(body instanceof Flux<? extends DataBuffer> fluxBody) {
 
                     return super.writeWith(fluxBody.buffer().map(dataBuffers -> {
                         DataBufferFactory dataBufferFactory = response.bufferFactory();

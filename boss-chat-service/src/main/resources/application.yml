@@ -1,10 +1,10 @@
 server:
-  port: 9020
+  port: 9040
 spring:
   profiles:
     active: dev
   application:
-    name: boss-job-service
+    name: boss-chat-service
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${spring.datasource.host}:${spring.datasource.port}/${spring.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
