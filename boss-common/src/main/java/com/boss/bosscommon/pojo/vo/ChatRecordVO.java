@@ -1,4 +1,4 @@
-package com.boss.bosscommon.pojo.dto;
+package com.boss.bosscommon.pojo.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChatRecordDTO implements Serializable {
+public class ChatRecordVO implements Serializable {
     private Integer status;
     private Long fromUid;
     private Long toUid;

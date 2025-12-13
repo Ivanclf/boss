@@ -21,10 +21,19 @@
         where from_uid = #{fromUid} and to_uid = #{toUid} and deleted = 0
     </select>
 
-        <insert id="insertChatRecord" parameterType="com.boss.bosscommon.pojo.entity.ChatRecord">
-            INSERT INTO chat_db.chat_record
-            (from_uid, to_uid, context, status, create_time, deleted)
-            VALUES
-            (#{fromUid}, #{toUid}, #{context}, #{status}, #{createTime}, #{deleted})
-        </insert>
+    <select id="getChatBetweenUserAndAI" resultType="com.boss.bosscommon.pojo.entity.ChatRecord">
+        select *
+        from chat_db.chat_record
+        where ((from_uid = #{userUid} and to_uid = #{aiUid})
+            or (from_uid = #{aiUid} and to_uid = #{userUid}))
+          and deleted = 0
+        order by create_time desc
+    </select>
+
+    <insert id="insertChatRecord" parameterType="com.boss.bosscommon.pojo.entity.ChatRecord">
+        insert into chat_db.chat_record
+        (from_uid, to_uid, context, status, create_time, deleted)
+        values
+        (#{fromUid}, #{toUid}, #{context}, #{status}, #{createTime}, #{deleted})
+    </insert>
 </mapper>

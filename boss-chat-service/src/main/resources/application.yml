@@ -28,9 +28,37 @@ spring:
       server-addr: ${spring.cloud.nacos.server-addr}
       discovery:
         cluster-name: XA
+  kafka:
+    bootstrap-servers: ${spring.kafka.bootstrap-servers}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        delivery.timeout.ms: 30000
+        request.timeout.ms: 30000
+        max.in.flight.requests.per.connection: 5
+        enable.idempotence: true
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      group-id: ${spring.application.name}-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        spring.json.trusted.packages: "com.boss.bosscommon.pojo"
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.activity.manage.pojo.entity
   configuration:
     map-underscore-to-camel-case: true
+
+kafka:
+  topics:
+    chat-record-topic: chat-record-topic
+    retry-topic: retry-topic
+    dead-letter-topic: dead-letter-topic
+  partitions: 3
+  replicas: 1

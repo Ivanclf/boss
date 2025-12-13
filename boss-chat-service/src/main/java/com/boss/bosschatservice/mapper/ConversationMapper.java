@@ -11,6 +11,8 @@ public interface ConversationMapper {
     List<ChatRecord> getAllRelatedChat(Long userUid);
 
     List<ChatRecord> getChatByUids(@Param("fromUid") Long fromUid, @Param("toUid") Long toUid);
+    
+    List<ChatRecord> getChatBetweenUserAndAI(@Param("userUid") Long userUid, @Param("aiUid") Long aiUid);
 
     int insertChatRecord(ChatRecord chatRecord);
 }

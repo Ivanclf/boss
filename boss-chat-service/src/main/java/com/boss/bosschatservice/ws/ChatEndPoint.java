@@ -2,7 +2,7 @@ package com.boss.bosschatservice.ws;
 
 import com.boss.bosschatservice.config.WebSocketHandShakeInterceptor;
 import com.boss.bosschatservice.service.ConversationService;
-import com.boss.bosscommon.pojo.Message;
+import com.boss.bosscommon.pojo.entity.ChatMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import jakarta.websocket.OnClose;
@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.boss.bosscommon.constant.ChatConstant.CHAT_HUMAN_RESOURCES;
 import static com.boss.bosscommon.constant.RedisConstant.LOGIN_USER_KEY;
 
 @Slf4j
@@ -57,9 +58,9 @@ public class ChatEndPoint {
 
     @OnMessage
     public void onMessage(String message, Session session) {
-        Message msgObj;
+        ChatMessage msgObj;
         try {
-            msgObj = objectMapper.readValue(message, Message.class);
+            msgObj = objectMapper.readValue(message, ChatMessage.class);
         } catch (Exception e) {
             log.error("消息解析失败", e);
             return;
@@ -98,8 +99,7 @@ public class ChatEndPoint {
             }
         }
 
-        // 落盘
-        conversationService.saveChatRecord(senderUid, toUid, msgObj.getMessage());
+        conversationService.saveChatRecord(senderUid, toUid, msgObj.getMessage(), CHAT_HUMAN_RESOURCES);
     }
 
     @OnClose

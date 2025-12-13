@@ -9,7 +9,9 @@ spring:
     ollama:
       base-url: ${spring.ai.ollama.base-url}
       chat:
-        model: deepseek-r1:8b
+        model: ${spring.ai.chat.model}
+      init:
+        timeout: 300000
   data:
     redis:
       host: ${spring.data.redis.host}
@@ -28,6 +30,34 @@ spring:
       server-addr: ${spring.cloud.nacos.server-addr}
       discovery:
         cluster-name: XA
+  kafka:
+    bootstrap-servers: ${spring.kafka.bootstrap-servers}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        delivery.timeout.ms: 30000
+        request.timeout.ms: 30000
+        max.in.flight.requests.per.connection: 5
+        enable.idempotence: true
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      group-id: ${spring.application.name}-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        spring.json.trusted.packages: "com.boss.bosscommon.pojo"
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+kafka:
+  topics:
+    interview-topic: interview-topic
+    retry-topic: retry-topic
+    dead-letter-topic: dead-letter-topic
+  partitions: 3
+  replicas: 1

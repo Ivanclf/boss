@@ -38,8 +38,8 @@ tags:
     description: 用户与HR之间的聊天功能
   - name: AI面试
     description: AI模拟面试功能
-  - name: 文件上传
-    description: 简历等文件上传接口
+  - name: 搜索服务
+    description: 职位信息搜索服务，基于Elasticsearch实现
 
 paths:
   # ==================== 用户认证相关接口 ====================
@@ -202,64 +202,6 @@ paths:
         '401':
           description: 需要HR权限
 
-    get:
-      tags:
-        - 职位管理
-      summary: 搜索职位
-      description: 搜索职位，支持关键字、技术栈、薪资范围等条件
-      parameters:
-        - name: keyword
-          in: query
-          required: false
-          schema:
-            type: string
-          description: 搜索关键词（标题、描述、技术栈）
-        - name: techStack
-          in: query
-          required: false
-          schema:
-            type: string
-          description: 技术栈标签
-        - name: minSalary
-          in: query
-          required: false
-          schema:
-            type: number
-          description: 最低薪资
-        - name: maxSalary
-          in: query
-          required: false
-          schema:
-            type: number
-          description: 最高薪资
-        - name: location
-          in: query
-          required: false
-          schema:
-            type: string
-          description: 工作地点
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-          description: 页码，从0开始
-        - name: size
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-          description: 每页数量
-      responses:
-        '200':
-          description: 搜索成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PageResult_JobInfo'
-
   /jobs/{uid}:
     get:
       tags:
@@ -315,131 +257,6 @@ paths:
         '403':
           description: 只能修改自己发布的职位
 
-  /jobs/{jobUid}/apply:
-    post:
-      tags:
-        - 职位管理
-      summary: 申请职位
-      description: 求职者申请指定职位
-      parameters:
-        - name: jobUid
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          description: 职位ID
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                resumeId:
-                  type: integer
-                  format: int64
-                  description: 简历ID（可选）
-                coverLetter:
-                  type: string
-                  description: 求职信（可选）
-      responses:
-        '200':
-          description: 申请成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobApplication'
-        '400':
-          description: 参数错误
-
-  /hr/jobs/{jobUid}/applications:
-    get:
-      tags:
-        - 职位管理
-      summary: 获取职位申请列表
-      description: HR获取自己发布职位的申请者列表
-      parameters:
-        - name: jobUid
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          description: 职位ID
-        - name: status
-          in: query
-          required: false
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4]
-          description: 申请状态筛选
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-        - name: size
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PageResult_JobApplication'
-
-  /hr/jobs/applications/{applicationId}/status:
-    put:
-      tags:
-        - 职位管理
-      summary: 更新申请状态
-      description: HR更新求职者的申请状态
-      parameters:
-        - name: applicationId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          description: 申请ID
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - status
-              properties:
-                status:
-                  type: integer
-                  enum: [0, 1, 2, 3, 4]
-                  description: 新的状态
-                feedback:
-                  type: string
-                  description: 反馈信息
-      responses:
-        '200':
-          description: 更新成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Result'
-        '400':
-          description: 参数错误
-
   # ==================== 聊天服务接口 ====================
   /chat/conversations:
     get:
@@ -449,15 +266,28 @@ paths:
       description: 获取当前用户的所有聊天会话
       security:
         - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: 页码，从1开始
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: 每页数量
       responses:
         '200':
           description: 获取成功
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Conversation'
+                $ref: '#/components/schemas/PageResult_ChatLatestListVO'
 
   /chat/conversations/{userId}:
     get:
@@ -478,13 +308,13 @@ paths:
           required: false
           schema:
             type: integer
-            default: 0
+            default: 1
         - name: size
           in: query
           required: false
           schema:
             type: integer
-            default: 20
+            default: 10
       security:
         - BearerAuth: []
       responses:
@@ -493,7 +323,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageResult_ChatMessage'
+                $ref: '#/components/schemas/PageResult_ChatRecordVO'
 
     post:
       tags:
@@ -657,7 +487,7 @@ paths:
           required: false
           schema:
             type: integer
-            default: 0
+            default: 1
         - name: size
           in: query
           required: false
@@ -670,83 +500,67 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageResult_AIInterviewHistory'
+                $ref: '#/components/schemas/PageResult_ChatRecordVO'
 
-  # ==================== 文件上传接口 ====================
-  /upload/resume:
-    post:
+  # ==================== 搜索服务接口 ====================
+  /search/jobs:
+    get:
       tags:
-        - 文件上传
-      summary: 上传简历
-      description: 上传简历文件（支持PDF、DOC、DOCX格式，最大10MB）
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                  description: 简历文件
-                title:
-                  type: string
-                  description: 简历标题
+        - 搜索服务
+      summary: 搜索职位
+      description: 使用Elasticsearch搜索职位，支持关键字、技术栈、薪资范围等条件
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 搜索关键词（标题、描述、技术栈）
+        - name: techStack
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 技术栈标签
+        - name: minSalary
+          in: query
+          required: false
+          schema:
+            type: number
+          description: 最低薪资
+        - name: maxSalary
+          in: query
+          required: false
+          schema:
+            type: number
+          description: 最高薪资
+        - name: location
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 工作地点
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: 页码，从1开始
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: 每页数量
       responses:
         '200':
-          description: 上传成功
+          description: 搜索成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  fileId:
-                    type: integer
-                    format: int64
-                  fileName:
-                    type: string
-                  fileUrl:
-                    type: string
-                  fileSize:
-                    type: integer
-                    format: int64
-        '400':
-          description: 参数错误
-
-  /upload/avatar:
-    post:
-      tags:
-        - 文件上传
-      summary: 上传头像
-      description: 上传用户头像（支持JPG、PNG格式，最大2MB）
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                  description: 头像文件
-      responses:
-        '200':
-          description: 上传成功
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  avatarUrl:
-                    type: string
-        '400':
-          description: 参数错误
+                $ref: '#/components/schemas/PageResult_JobSearchVO'
 
 # ==================== 组件定义 ====================
 components:
@@ -764,7 +578,7 @@ components:
         data:
           type: object
 
-    PageResult_JobInfo:
+    PageResult_JobSearchVO:
       type: object
       properties:
         code:
@@ -777,7 +591,7 @@ components:
             content:
               type: array
               items:
-                $ref: '#/components/schemas/JobInfo'
+                $ref: '#/components/schemas/JobSearchVO'
             totalElements:
               type: integer
             totalPages:
@@ -790,7 +604,7 @@ components:
           type: integer
           format: int64
 
-    PageResult_ChatMessage:
+    PageResult_ChatLatestListVO:
       type: object
       properties:
         code:
@@ -803,7 +617,7 @@ components:
             content:
               type: array
               items:
-                $ref: '#/components/schemas/ChatMessage'
+                $ref: '#/components/schemas/ChatLatestListVO'
             totalElements:
               type: integer
             totalPages:
@@ -816,7 +630,7 @@ components:
           type: integer
           format: int64
 
-    PageResult_AIInterviewHistory:
+    PageResult_ChatRecordVO:
       type: object
       properties:
         code:
@@ -829,33 +643,7 @@ components:
             content:
               type: array
               items:
-                $ref: '#/components/schemas/AIInterviewHistory'
-            totalElements:
-              type: integer
-            totalPages:
-              type: integer
-            size:
-              type: integer
-            number:
-              type: integer
-        timestamp:
-          type: integer
-          format: int64
-
-    PageResult_JobApplication:
-      type: object
-      properties:
-        code:
-          type: integer
-        msg:
-          type: string
-        data:
-          type: object
-          properties:
-            content:
-              type: array
-              items:
-                $ref: '#/components/schemas/JobApplication'
+                $ref: '#/components/schemas/ChatRecordVO'
             totalElements:
               type: integer
             totalPages:
@@ -1015,7 +803,7 @@ components:
           items:
             type: string
 
-    JobInfo:
+    JobSearchVO:
       type: object
       properties:
         uid:
@@ -1036,48 +824,17 @@ components:
           type: integer
         salaryMax:
           type: integer
-        status:
-          type: integer
-        publishTime:
-          type: string
-          format: date-time
-        updateTime:
-          type: string
-          format: date-time
-
-    JobApplication:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        jobId:
-          type: integer
-          format: int64
-        jobTitle:
-          type: string
-        userId:
-          type: integer
-          format: int64
-        userName:
-          type: string
-        userAvatar:
-          type: string
-        status:
-          type: integer
-          enum: [0, 1, 2, 3, 4]
-        statusText:
-          type: string
-        applyTime:
-          type: string
-          format: date-time
-        resumeUrl:
-          type: string
-        coverLetter:
-          type: string
+        jobTags:
+          type: array
+          items:
+            type: string
+        score:
+          type: number
+          format: float
+          description: 搜索匹配度分数
 
     # 聊天相关
-    Conversation:
+    ChatLatestListVO:
       type: object
       properties:
         userId:
@@ -1095,7 +852,7 @@ components:
         unreadCount:
           type: integer
 
-    ChatMessage:
+    ChatRecordVO:
       type: object
       properties:
         id:
@@ -1119,29 +876,26 @@ components:
           type: string
           format: date-time
 
-    # AI面试相关
-    AIInterviewHistory:
+    ChatMessage:
       type: object
       properties:
         id:
           type: integer
           format: int64
-        sessionId:
+        fromUid:
+          type: integer
+          format: int64
+        toUid:
+          type: integer
+          format: int64
+        message:
           type: string
-        jobTitle:
-          type: string
-        startTime:
+        type:
+          type: integer
+          enum: [0, 1, 2]
+        sendTime:
           type: string
           format: date-time
-        endTime:
-          type: string
-          format: date-time
-        status:
-          type: integer
-        evaluation:
-          type: string
-        totalQuestions:
-          type: integer
 
     # WebSocket消息格式
     WSChatMessage:
