@@ -1,0 +1,25 @@
+server:
+  port: 9080
+spring:
+  profiles:
+    active: dev
+  application:
+    name: boss-search-service
+  cloud:
+    nacos:
+      server-addr: ${spring.cloud.nacos.server-addr}
+      discovery:
+        cluster-name: XA
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+logging:
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 7
+      total-size-cap: 500MB
+
+elasticsearch:
+  host: ${elasticsearch.host}
+  port: ${elasticsearch.port}

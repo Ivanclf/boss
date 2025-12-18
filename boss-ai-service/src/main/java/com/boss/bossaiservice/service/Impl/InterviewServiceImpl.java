@@ -5,7 +5,6 @@ import com.boss.bosscommon.clients.ChatsClient;
 import com.boss.bosscommon.exception.clientException;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
 import com.boss.bosscommon.pojo.vo.ChatRecordVO;
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;

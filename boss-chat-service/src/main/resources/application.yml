@@ -55,6 +55,13 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
 
+logging:
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 7
+      total-size-cap: 500MB
+
 kafka:
   topics:
     chat-record-topic: chat-record-topic

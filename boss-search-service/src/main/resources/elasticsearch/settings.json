@@ -1,0 +1,26 @@
+{
+  "analysis": {
+    "analyzer": {
+      "ik_smart_cn": {
+        "type": "ik_smart"
+      },
+      "ik_max_word_cn": {
+        "type": "ik_max_word"
+      },
+      "pinyin_analyzer": {
+        "tokenizer": "pinyin_tokenizer"
+      }
+    },
+    "tokenizer": {
+      "pinyin_tokenizer": {
+        "type": "pinyin",
+        "keep_separate_first_letter": false,
+        "keep_full_pinyin": true,
+        "keep_original": true,
+        "limit_first_letter_length": 16,
+        "lowercase": true,
+        "remove_duplicated_term": true
+      }
+    }
+  }
+}
