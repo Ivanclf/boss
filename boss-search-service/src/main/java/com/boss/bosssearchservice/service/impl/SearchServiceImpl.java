@@ -4,23 +4,19 @@ import com.alibaba.fastjson.JSON;
 import com.boss.bosscommon.pojo.dto.ChatMessageElasticsearchDTO;
 import com.boss.bosscommon.pojo.dto.JobApplyElasticsearchDTO;
 import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
-import com.boss.bosssearchservice.constants.JobApplyIndexConstant;
-import com.boss.bosssearchservice.constants.JobIndexConstant;
 import com.boss.bosssearchservice.service.SearchService;
-import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.connector.ClientAbortException;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.CreateIndexRequest;
-import org.elasticsearch.client.indices.GetIndexRequest;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -30,8 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.boss.bosscommon.constant.JobPublishConstant.PUBLISHED;
+import static com.boss.bosscommon.constant.RedisConstant.LOGIN_USER_KEY;
 import static com.boss.bosssearchservice.constants.ChatMessageIndexConstant.CHAT_MESSAGE_INDEX;
-import static com.boss.bosssearchservice.constants.ChatMessageIndexConstant.CHAT_MESSAGE_SCRIPT;
 import static com.boss.bosssearchservice.constants.JobApplyIndexConstant.JOB_APPLY_INDEX;
 import static com.boss.bosssearchservice.constants.JobIndexConstant.JOB_INDEX;
 
@@ -45,17 +41,8 @@ public class SearchServiceImpl implements SearchService {
         this.client = restHighLevelClient;
     }
 
-    @PostConstruct
-    public void createIndex() throws IOException {
-        GetIndexRequest getIndexRequest = new GetIndexRequest(JOB_INDEX);
-        createIfNotExists(getIndexRequest, JobIndexConstant.JOB_INDEX, JobIndexConstant.JOB_SCRIPT);
-
-        getIndexRequest = new GetIndexRequest(JOB_APPLY_INDEX);
-        createIfNotExists(getIndexRequest, JobApplyIndexConstant.JOB_APPLY_INDEX, JobApplyIndexConstant.JOB_APPLY_SCRIPT);
-
-        getIndexRequest = new GetIndexRequest(CHAT_MESSAGE_INDEX);
-        createIfNotExists(getIndexRequest, CHAT_MESSAGE_INDEX, CHAT_MESSAGE_SCRIPT);
-    }
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     public List<JobElasticsearchDTO> searchJob(
             String keyword,
@@ -109,6 +96,7 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public List<JobApplyElasticsearchDTO> searchJobApply(
+            String token,
             String keyword,
             String jobCity,
             Integer salaryMin,
@@ -120,6 +108,12 @@ public class SearchServiceImpl implements SearchService {
         SearchRequest request = new SearchRequest(JOB_APPLY_INDEX);
 
         BoolQueryBuilder bool = QueryBuilders.boolQuery();
+
+        Long uid = (Long) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        if(uid == null) {
+            throw new ClientAbortException("用户未登录");
+        }
+        bool.filter(QueryBuilders.termQuery("hrUid", uid));
 
         if(StringUtils.hasText(keyword)) {
             bool.must(QueryBuilders.multiMatchQuery(
@@ -171,6 +165,7 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public List<ChatMessageElasticsearchDTO> searchChatMessage(
+            String token,
             String keyword,
             LocalDateTime date,
             Integer pageNum,
@@ -178,6 +173,16 @@ public class SearchServiceImpl implements SearchService {
         SearchRequest request = new SearchRequest(CHAT_MESSAGE_INDEX);
 
         BoolQueryBuilder bool = QueryBuilders.boolQuery();
+
+        Long uid = (Long) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        if(uid == null) {
+            throw new ClientAbortException("用户未登录");
+        }
+        bool.filter(QueryBuilders.multiMatchQuery(
+                uid,
+                "fromUid",
+                "toUid"
+        ));
 
         if(StringUtils.hasText(keyword)) {
             bool.must(QueryBuilders.multiMatchQuery(
@@ -206,15 +211,4 @@ public class SearchServiceImpl implements SearchService {
                 .toList();
     }
 
-    private void createIfNotExists(GetIndexRequest getIndexRequest, String chatMessageIndex, String chatMessageScript) throws IOException {
-        if(!client.indices().exists(getIndexRequest, RequestOptions.DEFAULT)) {
-            CreateIndexRequest createIndexRequest = new CreateIndexRequest(chatMessageIndex);
-            createIndexRequest.settings(Settings.builder()
-                    .put("analysis.analyzer.ik_max.type", "custom")
-                    .put("analysis.analyzer.ik_max.tokenizer", "ik_max_word"));
-            createIndexRequest.mapping(chatMessageScript, XContentType.JSON);
-
-            client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
-        }
-    }
 }

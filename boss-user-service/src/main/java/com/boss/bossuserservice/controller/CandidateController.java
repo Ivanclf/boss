@@ -13,7 +13,7 @@ public class CandidateController {
     private CandidateService candidateService;
 
     @PostMapping("/jobs")
-    public void apply(@RequestHeader("authorization") String token, @RequestBody UserJobApplyDTO userJobApplyDTO) {
+    public void apply(@RequestHeader("Authorization") String token, @RequestBody UserJobApplyDTO userJobApplyDTO) {
         candidateService.apply(token, userJobApplyDTO);
     }
 }

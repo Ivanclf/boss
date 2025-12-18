@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.boss.bosscommon.exception.clientException;
 import com.boss.bosscommon.pojo.dto.UserUpdateDTO;
 import com.boss.bosscommon.pojo.entity.User;
+import com.boss.bosscommon.pojo.entity.UserJobApply;
 import com.boss.bosscommon.pojo.vo.UserBasicVO;
 import com.boss.bossuserservice.mapper.AuthMapper;
 import com.boss.bossuserservice.mapper.ProfileMapper;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -48,11 +50,16 @@ public class ProfileServiceImpl implements ProfileService {
 
         String key = LOGIN_USER_KEY + token;
         Map<Object, Object> map = stringRedisTemplate.opsForHash().entries(key);
-        User user = BeanUtil.copyProperties(userUpdateDTO, User.class);
-
-        user.setRole(null);
-        user.setUpdateTime(LocalDateTime.now());
-        user.setUid((Long) map.get("uid"));
+        User user = User.builder()
+                .name(userUpdateDTO.getName())
+                .password(userUpdateDTO.getPassword())
+                .phone(userUpdateDTO.getPhone())
+                .avatar(userUpdateDTO.getAvatar())
+                .deleted(userUpdateDTO.getDeleted())
+                .role(null)
+                .updateTime(LocalDateTime.now())
+                .uid((Long) map.get("uid"))
+                .build();
         profileMapper.update(user);
 
         if(userUpdateDTO.getName() != null) {
@@ -78,6 +85,17 @@ public class ProfileServiceImpl implements ProfileService {
         if (user == null) {
             return null;
         }
-        return BeanUtil.copyProperties(user, UserBasicVO.class);
+        return UserBasicVO.builder()
+                .uid(user.getUid())
+                .name(user.getName())
+                .phone(user.getPhone())
+                .avatar(user.getAvatar())
+                .role(user.getRole())
+                .build();
+    }
+
+    @Override
+    public List<UserJobApply> queryForElasticsearch() {
+        return profileMapper.queryForElasticsearch();
     }
 }

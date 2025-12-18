@@ -14,7 +14,7 @@ public class JobApplyIndexConstant {
                 },
                 "candidatePhone": { "type": "keyword" },
             
-                "hrUid": { "type": "long", "index": false },
+                "hrUid": { "type": "long"},
                 "jobUid": { "type": "long", "index": false },
             
                 "jobTitle": {

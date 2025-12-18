@@ -47,7 +47,13 @@ public class AuthServiceImpl implements AuthService {
             throw new clientException("请输入正确的账号和密码");
         }
 
-        UserBasicVO userBasicVO = BeanUtil.copyProperties(user, UserBasicVO.class);
+        UserBasicVO userBasicVO = UserBasicVO.builder()
+                .uid(user.getUid())
+                .name(user.getName())
+                .phone(user.getPhone())
+                .avatar(user.getAvatar())
+                .role(user.getRole())
+                .build();
         String token = UUID.randomUUID().toString();
         userBasicVO.setAuthorization(token);
         Map<String, Object> redisMap = BeanUtil.beanToMap(userBasicVO, new HashMap<>(),
@@ -72,14 +78,26 @@ public class AuthServiceImpl implements AuthService {
             throw new clientException("用户已存在");
         }
 
-        user = BeanUtil.copyProperties(userRegistryDTO, User.class);
-        user.setAvatar("http://localhost:8080");
-        user.setDeleted(0);
-        user.setCreateTime(LocalDateTime.now());
-        user.setUid(generateId());
+
+        user = User.builder()
+                .phone(userRegistryDTO.getPhone())
+                .password(userRegistryDTO.getPassword())
+                .role(userRegistryDTO.getRole())
+                .name(userRegistryDTO.getName())
+                .avatar("http://localhost:8080")
+                .deleted(0)
+                .createTime(LocalDateTime.now())
+                .uid(generateId())
+                .build();
         authMapper.insert(user);
 
-        UserBasicVO userBasicVO = BeanUtil.copyProperties(user, UserBasicVO.class);
+        UserBasicVO userBasicVO = UserBasicVO.builder()
+                .uid(user.getUid())
+                .name(user.getName())
+                .phone(user.getPhone())
+                .avatar(user.getAvatar())
+                .role(user.getRole())
+                .build();
         String token = UUID.randomUUID().toString();
         userBasicVO.setAuthorization(token);
         Map<String, Object> redisMap = BeanUtil.beanToMap(userBasicVO, new HashMap<>(),

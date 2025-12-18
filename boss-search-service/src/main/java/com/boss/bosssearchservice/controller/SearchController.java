@@ -6,10 +6,7 @@ import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
 import com.boss.bosssearchservice.service.SearchService;
 import jakarta.annotation.Resource;
 import org.springframework.boot.context.properties.bind.DefaultValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
 import java.io.IOException;
@@ -37,6 +34,7 @@ public class SearchController {
 
     @GetMapping("/jobApply")
     public List<JobApplyElasticsearchDTO> searchJobApply(
+            @RequestHeader("Authorization") String token,
             @RequestParam String keyword,
             @RequestParam String jobCity,
             @RequestParam Integer salaryMin,
@@ -46,16 +44,17 @@ public class SearchController {
             @RequestParam @DefaultValue("1") @Min(0) Integer pageNum,
             @RequestParam @DefaultValue("10") @Min(0) Integer pageSize
     ) throws IOException {
-        return searchService.searchJobApply(keyword, jobCity, salaryMin, salaryMax, status, date, pageNum, pageSize);
+        return searchService.searchJobApply(token, keyword, jobCity, salaryMin, salaryMax, status, date, pageNum, pageSize);
     }
 
     @GetMapping("/chatMessage")
     public List<ChatMessageElasticsearchDTO> searchChatMessage(
+            @RequestHeader("Authorization") String token,
             @RequestParam String keyword,
             @RequestParam LocalDateTime date,
             @RequestParam @DefaultValue("1") @Min(0) Integer pageNum,
             @RequestParam @DefaultValue("10") @Min(0) Integer pageSize
     ) throws IOException {
-        return searchService.searchChatMessage(keyword, date, pageNum, pageSize);
+        return searchService.searchChatMessage(token, keyword, date, pageNum, pageSize);
     }
 }

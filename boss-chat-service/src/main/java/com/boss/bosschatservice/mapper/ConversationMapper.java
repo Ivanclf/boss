@@ -3,6 +3,7 @@ package com.boss.bosschatservice.mapper;
 import com.boss.bosscommon.pojo.entity.ChatRecord;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -15,4 +16,7 @@ public interface ConversationMapper {
     List<ChatRecord> getChatBetweenUserAndAI(@Param("userUid") Long userUid, @Param("aiUid") Long aiUid);
 
     int insertChatRecord(ChatRecord chatRecord);
+
+    @Select("select * from chat_db.chat_record where deleted = 0")
+    List<ChatRecord> queryAll();
 }

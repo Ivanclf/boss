@@ -18,7 +18,7 @@ public interface SearchService {
             Integer pageSize
     ) throws IOException;
 
-    List<JobApplyElasticsearchDTO> searchJobApply(String keyword, String jobCity, Integer salaryMin, Integer salaryMax, Integer status, LocalDateTime date, Integer pageNum, Integer pageSize) throws IOException;
+    List<JobApplyElasticsearchDTO> searchJobApply(String token, String keyword, String jobCity, Integer salaryMin, Integer salaryMax, Integer status, LocalDateTime date, Integer pageNum, Integer pageSize) throws IOException;
 
-    List<ChatMessageElasticsearchDTO> searchChatMessage(String keyword, LocalDateTime date, Integer pageNum, Integer pageSize) throws IOException;
+    List<ChatMessageElasticsearchDTO> searchChatMessage(String token, String keyword, LocalDateTime date, Integer pageNum, Integer pageSize) throws IOException;
 }

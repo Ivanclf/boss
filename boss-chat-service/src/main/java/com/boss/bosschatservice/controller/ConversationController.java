@@ -1,6 +1,7 @@
 package com.boss.bosschatservice.controller;
 
 import com.boss.bosschatservice.service.ConversationService;
+import com.boss.bosscommon.pojo.dto.ChatMessageElasticsearchDTO;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
 import com.boss.bosscommon.pojo.vo.ChatLatestListVO;
 import com.boss.bosscommon.pojo.vo.ChatRecordVO;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @RestController
 @RequestMapping("/chat/conversation")
@@ -48,5 +50,10 @@ public class ConversationController {
             @RequestParam(defaultValue = "1") int pageNum,
             @RequestParam(defaultValue = "10") int pageSize) {
         return conversationService.getAiChatRecord(uid, pageNum, pageSize);
+    }
+
+    @GetMapping("/es/all")
+    public List<ChatMessageElasticsearchDTO> initElasticsearch() {
+        return conversationService.queryForElasticsearch();
     }
 }

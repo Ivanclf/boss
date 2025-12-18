@@ -10,6 +10,19 @@ spring:
       server-addr: ${spring.cloud.nacos.server-addr}
       discovery:
         cluster-name: XA
+  data:
+    redis:
+      host: ${spring.data.redis.host}
+      port: ${spring.data.redis.port}
+      password: ${spring.data.redis.password}
+      database: ${spring.data.redis.database}
+      lettuce:
+        shutdown-timeout: 100ms
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 10s
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration

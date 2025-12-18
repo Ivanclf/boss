@@ -36,10 +36,16 @@ public class HrServiceImpl implements HrService {
                 .build();
 
         List<UserHrShowVO> userHrShowVOS = hrMapper.getApplyList(userJobApply)
-                .stream().map(userJobApply1 -> {
-                    return BeanUtil.copyProperties(userJobApply1, UserHrShowVO.class);
-                }).toList();
-
+                .stream().map(userJobApply1 -> UserHrShowVO.builder()
+                        .id(userJobApply1.getId())
+                        .candidateUid(userJobApply1.getCandidateUid())
+                        .jobUid(userJobApply1.getJobUid())
+                        .status(userJobApply1.getStatus())
+                        .applyMsg(userJobApply1.getApplyMsg())
+                        .createTime(userJobApply1.getCreateTime())
+                        .updateTime(userJobApply1.getUpdateTime())
+                        .build())
+                        .toList();
         return new PageInfo<>(userHrShowVOS);
     }
 

@@ -4,8 +4,12 @@ import cn.hutool.core.bean.BeanUtil;
 import com.boss.bosschatservice.mapper.ConversationMapper;
 import com.boss.bosschatservice.service.ConversationService;
 import com.boss.bosscommon.clients.UserClient;
+import com.boss.bosscommon.pojo.dto.ChatMessageElasticsearchDTO;
+import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
 import com.boss.bosscommon.pojo.entity.ChatRecord;
+import com.boss.bosscommon.pojo.entity.Job;
+import com.boss.bosscommon.pojo.entity.JobTag;
 import com.boss.bosscommon.pojo.vo.ChatLatestListVO;
 import com.boss.bosscommon.pojo.vo.ChatRecordVO;
 import com.github.pagehelper.PageHelper;
@@ -17,6 +21,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.boss.bosscommon.constant.AIUidConstant.AI_UID;
@@ -63,7 +68,15 @@ public class ConversationServiceImpl implements ConversationService {
         List<ChatRecord> chatRecords = conversationMapper.getChatByUids(fromUid, uid);
 
         List<ChatRecordVO> chatRecordVOS = chatRecords.stream().map(chatRecord -> {
-            return BeanUtil.copyProperties(chatRecord, ChatRecordVO.class);
+            ChatRecordVO chatRecordVO = ChatRecordVO.builder()
+                    .status(chatRecord.getStatus())
+                    .fromUid(chatRecord.getFromUid())
+                    .toUid(chatRecord.getToUid())
+                    .jobUid(chatRecord.getJobUid())
+                    .createTime(chatRecord.getCreateTime())
+                    .context(chatRecord.getContext())
+                    .build();
+            return chatRecordVO;
         }).toList();
 
         return new PageInfo<>(chatRecordVOS);
@@ -100,9 +113,34 @@ public class ConversationServiceImpl implements ConversationService {
         List<ChatRecord> chatRecords = conversationMapper.getChatBetweenUserAndAI(uid, AI_UID);
 
         List<ChatRecordVO> chatRecordVOS = chatRecords.stream()
-                .map(chatRecord -> BeanUtil.copyProperties(chatRecord, ChatRecordVO.class))
+                .map(chatRecord -> ChatRecordVO.builder()
+                        .status(chatRecord.getStatus())
+                        .fromUid(chatRecord.getFromUid())
+                        .toUid(chatRecord.getToUid())
+                        .jobUid(chatRecord.getJobUid())
+                        .createTime(chatRecord.getCreateTime())
+                        .context(chatRecord.getContext())
+                        .build())
                 .toList();
         
         return new PageInfo<>(chatRecordVOS);
+    }
+
+    @Override
+    public List<ChatMessageElasticsearchDTO> queryForElasticsearch() {
+        List<ChatRecord> chatRecords = conversationMapper.queryAll();
+        List<ChatMessageElasticsearchDTO> results = new ArrayList<>();
+        for(ChatRecord chatRecord : chatRecords) {
+            ChatMessageElasticsearchDTO chatMessageElasticsearchDTO = ChatMessageElasticsearchDTO.builder()
+                    .messageId(chatRecord.getId())
+                    .fromUid(chatRecord.getFromUid())
+                    .toUid(chatRecord.getToUid())
+                    .jobUid(chatRecord.getJobUid())
+                    .context(chatRecord.getContext())
+                    .createTime(chatRecord.getCreateTime())
+                    .build();
+            results.add(chatMessageElasticsearchDTO);
+        }
+        return results;
     }
 }

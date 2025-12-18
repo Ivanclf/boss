@@ -8,8 +8,8 @@ public class ChatMessageIndexConstant {
               "properties": {
                 "messageId": { "type": "long", "index": false },
                 "fromUid": { "type": "long", "index": false },
-                "toUid": { "type": "long", "index": false },
-                "jobUid": { "type": "long", "index": false },
+                "toUid": { "type": "long"},
+                "jobUid": { "type": "long"},
             
                 "context": {
                   "type": "text",

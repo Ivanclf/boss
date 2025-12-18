@@ -4,6 +4,8 @@ import com.boss.bosscommon.pojo.entity.Job;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.List;
+
 @Mapper
 public interface JobsMapper {
     Long insert(Job job);
@@ -12,4 +14,7 @@ public interface JobsMapper {
     Job getJobByUid(Long uid);
 
     void update(Job job);
+
+    @Select("select * from job_db.job where deleted = 0")
+    List<Job> queryAll();
 }

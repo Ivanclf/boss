@@ -2,6 +2,7 @@ package com.boss.bossjobservice.service.serviceImpl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.boss.bosscommon.exception.clientException;
+import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
 import com.boss.bosscommon.pojo.dto.JobInsertDTO;
 import com.boss.bosscommon.pojo.dto.JobUpdateDTO;
 import com.boss.bosscommon.pojo.entity.Job;
@@ -44,7 +45,14 @@ public class JobServiceImpl implements JobsService {
 
         List<String> tags = jobInsertDTO.getTags();
         LocalDateTime now = LocalDateTime.now();
-        Job job = BeanUtil.copyProperties(jobInsertDTO, Job.class);
+        Job job = new Job();
+        job.setHrUid(jobInsertDTO.getHrUid());
+        job.setTitle(jobInsertDTO.getTitle());
+        job.setDescription(jobInsertDTO.getDescription());
+        job.setRequirement(jobInsertDTO.getRequirement());
+        job.setCity(jobInsertDTO.getCity());
+        job.setSalaryMin(jobInsertDTO.getSalaryMin());
+        job.setSalaryMax(jobInsertDTO.getSalaryMax());
         job.setHrUid(hrUid);
         job.setStatus(UNPUBLISHED);
         job.setPublishTime(now);
@@ -65,7 +73,16 @@ public class JobServiceImpl implements JobsService {
     public JobBasicInfoVO getJobBasicInfo(Long uid) {
         Job job = jobsMapper.getJobByUid(uid);
         List<JobTag> jobTags = jobTagMapper.getTagsByUid(uid);
-        JobBasicInfoVO jobBasicInfoVO = BeanUtil.copyProperties(job, JobBasicInfoVO.class);
+        JobBasicInfoVO jobBasicInfoVO = new JobBasicInfoVO();
+        jobBasicInfoVO.setUid(job.getUid());
+        jobBasicInfoVO.setHrUid(job.getHrUid());
+        jobBasicInfoVO.setTitle(job.getTitle());
+        jobBasicInfoVO.setDescription(job.getDescription());
+        jobBasicInfoVO.setRequirement(job.getRequirement());
+        jobBasicInfoVO.setCity(job.getCity());
+        jobBasicInfoVO.setSalaryMin(job.getSalaryMin());
+        jobBasicInfoVO.setSalaryMax(job.getSalaryMax());
+        jobBasicInfoVO.setStatus(job.getStatus());
         jobBasicInfoVO.setJobTags(
                 jobTags.stream().map(JobTag::getTag).toList()
         );
@@ -75,7 +92,16 @@ public class JobServiceImpl implements JobsService {
     @Override
     @Transactional
     public void update(JobUpdateDTO jobUpdateDTO) {
-        Job job = BeanUtil.copyProperties(jobUpdateDTO, Job.class);
+        Job job = new Job();
+        job.setUid(jobUpdateDTO.getUid());
+        job.setHrUid(jobUpdateDTO.getHrUid());
+        job.setTitle(jobUpdateDTO.getTitle());
+        job.setDescription(jobUpdateDTO.getDescription());
+        job.setRequirement(jobUpdateDTO.getRequirement());
+        job.setCity(jobUpdateDTO.getCity());
+        job.setSalaryMin(jobUpdateDTO.getSalaryMin());
+        job.setSalaryMax(jobUpdateDTO.getSalaryMax());
+        job.setStatus(jobUpdateDTO.getStatus());
 
         Long uid = jobUpdateDTO.getUid();
         List<String> tags = jobUpdateDTO.getTags();
@@ -89,5 +115,31 @@ public class JobServiceImpl implements JobsService {
         jobsMapper.update(job);
         jobTagMapper.deleteByJobUid(uid);
         jobTagMapper.insertBatch(jobTags);
+    }
+
+    @Override
+    public List<JobElasticsearchDTO> queryForElasticsearch() {
+        List<Job> jobs = jobsMapper.queryAll();
+        List<JobElasticsearchDTO> results = new ArrayList<>();
+        for(Job job : jobs) {
+            JobElasticsearchDTO jobElasticsearchDTO = new JobElasticsearchDTO();
+            jobElasticsearchDTO.setUid(job.getUid());
+            jobElasticsearchDTO.setHrUid(job.getHrUid());
+            jobElasticsearchDTO.setTitle(job.getTitle());
+            jobElasticsearchDTO.setDescription(job.getDescription());
+            jobElasticsearchDTO.setRequirement(job.getRequirement());
+            jobElasticsearchDTO.setCity(job.getCity());
+            jobElasticsearchDTO.setSalaryMin(job.getSalaryMin());
+            jobElasticsearchDTO.setSalaryMax(job.getSalaryMax());
+            jobElasticsearchDTO.setStatus(job.getStatus());
+            jobElasticsearchDTO.setPublishTime(job.getPublishTime());
+            jobElasticsearchDTO.setUpdateTime(job.getUpdateTime());
+            jobElasticsearchDTO.setTags(
+                    jobTagMapper.getTagsByUid(jobElasticsearchDTO.getUid()).stream()
+                            .map(JobTag::getTag).toList()
+            );
+            results.add(jobElasticsearchDTO);
+        }
+        return results;
     }
 }

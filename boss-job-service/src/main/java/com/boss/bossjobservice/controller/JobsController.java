@@ -1,6 +1,7 @@
 package com.boss.bossjobservice.controller;
 
 import com.boss.bosscommon.exception.clientException;
+import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
 import com.boss.bosscommon.pojo.dto.JobInsertDTO;
 import com.boss.bosscommon.pojo.dto.JobUpdateDTO;
 import com.boss.bosscommon.pojo.vo.JobBasicInfoVO;
@@ -10,6 +11,7 @@ import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
+import java.util.List;
 
 @RestController
 @RequestMapping("/jobs")
@@ -52,5 +54,10 @@ public class JobsController {
             throw new clientException("请输入标签");
         }
         jobsService.update(jobUpdateDTO);
+    }
+
+    @GetMapping("/es/all")
+    public List<JobElasticsearchDTO> initElasticsearch() {
+        return jobsService.queryForElasticsearch();
     }
 }
