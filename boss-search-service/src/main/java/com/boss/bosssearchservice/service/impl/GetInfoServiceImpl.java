@@ -27,7 +27,7 @@ public class GetInfoServiceImpl implements GetInfoService {
 
     @Override
     public List<JobApplyElasticsearchDTO> queryForElasticsearch() {
-        List<JobElasticsearchDTO> jobs = jobsClient.updateElasticsearch();
+        List<JobElasticsearchDTO> jobs = jobsClient.initElasticsearch();
         List<UserJobApply> users = userClient.initElasticsearch();
 
         Map<Long, JobElasticsearchDTO> jobMap = jobs.stream()

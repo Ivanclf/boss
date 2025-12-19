@@ -4,6 +4,8 @@ import com.boss.bosscommon.exception.clientException;
 import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
 import com.boss.bosscommon.pojo.dto.JobInsertDTO;
 import com.boss.bosscommon.pojo.dto.JobUpdateDTO;
+import com.boss.bosscommon.pojo.entity.Job;
+import com.boss.bosscommon.pojo.entity.JobTag;
 import com.boss.bosscommon.pojo.vo.JobBasicInfoVO;
 import com.boss.bossjobservice.service.JobsService;
 import jakarta.annotation.Nonnull;
@@ -59,5 +61,15 @@ public class JobsController {
     @GetMapping("/es/all")
     public List<JobElasticsearchDTO> initElasticsearch() {
         return jobsService.queryForElasticsearch();
+    }
+
+    @GetMapping("/es/job/{uid}")
+    public Job queryForElasticsearch(@PathVariable Long uid) {
+        return jobsService.queryJobForElasticsearch(uid);
+    }
+
+    @GetMapping("/es/jobtag/{uid}")
+    public List<JobTag> queryTagsForElasticsearch(@PathVariable Long uid) {
+        return jobsService.queryTagsForElasticsearch(uid);
     }
 }

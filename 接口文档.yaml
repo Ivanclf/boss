@@ -204,6 +204,50 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserJobApply'
 
+  /user/profile/es/user/{uid}:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取指定用户信息用于Elasticsearch (内部服务接口)
+      description: 根据用户ID获取用户信息用于Elasticsearch初始化
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 用户ID
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /user/profile/es/apply/{uid}:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取指定职位申请信息用于Elasticsearch (内部服务接口)
+      description: 根据职位申请ID获取职位申请信息用于Elasticsearch初始化
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 职位申请ID
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserJobApply'
+
   # ==================== 职位管理接口 ====================
   /jobs:
     post:
@@ -300,6 +344,52 @@ paths:
                 items:
                   $ref: '#/components/schemas/JobElasticsearchDTO'
 
+  /jobs/es/job/{uid}:
+    get:
+      tags:
+        - 职位管理
+      summary: 获取指定职位信息用于Elasticsearch (内部服务接口)
+      description: 根据职位ID获取职位信息用于Elasticsearch初始化
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 职位ID
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+
+  /jobs/es/jobtag/{uid}:
+    get:
+      tags:
+        - 职位管理
+      summary: 获取指定职位标签信息用于Elasticsearch (内部服务接口)
+      description: 根据职位ID获取职位标签信息用于Elasticsearch初始化
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 职位ID
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobTag'
+
   # ==================== 聊天服务接口 ====================
   /chat/conversation:
     get:
@@ -368,19 +458,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/PageInfo_ChatRecordVO'
 
+  /chat/conversation/save/{role}:
     post:
       tags:
         - 聊天服务
       summary: 保存消息 (内部服务接口)
       description: 保存聊天消息记录
       parameters:
-        - name: uid
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          description: 接收方用户ID
         - name: role
           in: path
           required: true
@@ -560,25 +644,25 @@ paths:
       parameters:
         - name: keyword
           in: query
-          required: false
+          required: true
           schema:
             type: string
           description: 搜索关键词（标题、描述、技术栈）
         - name: city
           in: query
-          required: false
+          required: true
           schema:
             type: string
           description: 工作地点
         - name: salaryMin
           in: query
-          required: false
+          required: true
           schema:
             type: integer
           description: 最低薪资
         - name: salaryMax
           in: query
-          required: false
+          required: true
           schema:
             type: integer
           description: 最高薪资
@@ -617,37 +701,37 @@ paths:
       parameters:
         - name: keyword
           in: query
-          required: false
+          required: true
           schema:
             type: string
           description: 搜索关键词
         - name: jobCity
           in: query
-          required: false
+          required: true
           schema:
             type: string
           description: 工作城市
         - name: salaryMin
           in: query
-          required: false
+          required: true
           schema:
             type: integer
           description: 最低薪资
         - name: salaryMax
           in: query
-          required: false
+          required: true
           schema:
             type: integer
           description: 最高薪资
         - name: status
           in: query
-          required: false
+          required: true
           schema:
             type: integer
           description: 申请状态
         - name: date
           in: query
-          required: false
+          required: true
           schema:
             type: string
             format: date-time
@@ -685,13 +769,13 @@ paths:
       parameters:
         - name: keyword
           in: query
-          required: false
+          required: true
           schema:
             type: string
           description: 搜索关键词
         - name: date
           in: query
-          required: false
+          required: true
           schema:
             type: string
             format: date-time
@@ -882,6 +966,31 @@ components:
         deleted:
           type: integer
 
+    User:
+      type: object
+      properties:
+        uid:
+          type: integer
+          format: int64
+        name:
+          type: string
+        phone:
+          type: string
+        password:
+          type: string
+        avatar:
+          type: string
+        role:
+          type: integer
+        deleted:
+          type: integer
+        createTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
+
     # 职位相关
     JobInsertDTO:
       type: object
@@ -987,6 +1096,55 @@ components:
           type: array
           items:
             type: string
+
+    Job:
+      type: object
+      properties:
+        uid:
+          type: integer
+          format: int64
+        hrUid:
+          type: integer
+          format: int64
+        title:
+          type: string
+        description:
+          type: string
+        requirement:
+          type: string
+        city:
+          type: string
+        salaryMin:
+          type: integer
+        salaryMax:
+          type: integer
+        status:
+          type: integer
+        deleted:
+          type: integer
+        createTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
+
+    JobTag:
+      type: object
+      properties:
+        uid:
+          type: integer
+          format: int64
+        jobId:
+          type: integer
+          format: int64
+        tag:
+          type: string
+        deleted:
+          type: integer
+        createTime:
+          type: string
+          format: date-time
 
     JobApplyElasticsearchDTO:
       type: object

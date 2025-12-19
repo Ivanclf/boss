@@ -98,4 +98,14 @@ public class ProfileServiceImpl implements ProfileService {
     public List<UserJobApply> queryForElasticsearch() {
         return profileMapper.queryForElasticsearch();
     }
+
+    @Override
+    public User queryUserForElasticsearch(Long uid) {
+        return authMapper.queryByUid(uid);
+    }
+
+    @Override
+    public UserJobApply queryJobApplyForElasticsearch(Long uid) {
+        return profileMapper.queryJobApplyByUid(uid);
+    }
 }

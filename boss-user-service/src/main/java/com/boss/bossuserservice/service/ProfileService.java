@@ -1,6 +1,7 @@
 package com.boss.bossuserservice.service;
 
 import com.boss.bosscommon.pojo.dto.UserUpdateDTO;
+import com.boss.bosscommon.pojo.entity.User;
 import com.boss.bosscommon.pojo.entity.UserJobApply;
 import com.boss.bosscommon.pojo.vo.UserBasicVO;
 
@@ -14,4 +15,8 @@ public interface ProfileService {
     UserBasicVO getUserInfo(Long uid);
 
     List<UserJobApply> queryForElasticsearch();
+
+    User queryUserForElasticsearch(Long uid);
+
+    UserJobApply queryJobApplyForElasticsearch(Long uid);
 }

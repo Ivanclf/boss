@@ -13,4 +13,7 @@ public interface ProfileMapper {
 
     @Select("select * from users_db.user_job_apply where deleted = 0")
     List<UserJobApply> queryForElasticsearch();
+
+    @Select("select * from users_db.user_job_apply where id = #{uid} and deleted = 0")
+    UserJobApply queryJobApplyByUid(Long uid);
 }

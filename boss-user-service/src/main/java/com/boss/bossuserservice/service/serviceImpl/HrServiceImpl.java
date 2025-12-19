@@ -1,6 +1,5 @@
 package com.boss.bossuserservice.service.serviceImpl;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.boss.bosscommon.pojo.dto.UserApplyChangeDTO;
 import com.boss.bosscommon.pojo.entity.UserJobApply;
 import com.boss.bosscommon.pojo.vo.UserHrShowVO;

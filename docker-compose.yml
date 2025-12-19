@@ -1,0 +1,277 @@
+version: '3.8'
+
+services:
+  # 基础组件
+  
+  # MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    hostname: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: microservices
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: 123456
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ~/microservices/mysql/data:/var/lib/mysql
+      - ~/microservices/mysql/conf:/etc/mysql/conf.d
+      - ~/microservices/mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  # Redis
+  redis:
+    image: redis:latest
+    container_name: redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass 123456
+    volumes:
+      - ~/microservices/redis/data:/data
+      - ~/microservices/redis/conf:/usr/local/etc/redis
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  # Nacos
+  nacos:
+    image: nacos/nacos-server:v2.1.0-slim
+    container_name: nacos
+    hostname: nacos
+    ports:
+      - "8080:8080"
+      - "8848:8848"
+      - "9848:9848"
+    environment:
+      - MODE=standalone
+      - NACOS_AUTH_TOKEN=QU1pY3Jvc2VydmljZXNFeGFtcGxlRm9yTmFjb3M= # AMicroservicesExampleForNacos
+      - NACOS_AUTH_IDENTITY_KEY=nacos
+      - NACOS_AUTH_IDENTITY_VALUE=nacos
+    volumes:
+      - ~/microservices/nacos/logs:/home/nacos/logs
+    depends_on:
+      - mysql
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  # Kafka
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.20.128:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - ~/microservices/kafka/data:/var/lib/kafka/data
+    networks:
+      - microservices-net
+    depends_on:
+      - nacos
+    restart: unless-stopped
+
+  # Elasticsearch
+  elasticsearch:
+    image: elasticsearch:chinese
+    container_name: elasticsearch
+    hostname: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    volumes:
+      - ~/microservices/elasticsearch/data:/usr/share/elasticsearch/data
+      - ~/microservices/elasticsearch/plugins:/usr/share/elasticsearch/plugins
+    networks:
+      - microservices-net
+    depends_on:
+      - kafka
+    restart: unless-stopped
+
+  # kibana
+  kibana:
+    image: kibana:7.12.1
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - microservices-net
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+  # Canal
+  canal:
+    image: canal/canal-server:v1.1.7
+    container_name: canal
+    hostname: canal
+    environment:
+      canal.instance.master.address: mysql:3306
+      canal.instance.dbUsername: canal
+      canal.instance.dbPassword: canal123
+      canal.instance.connectionCharset: UTF-8
+      canal.instance.tsdb.enable: "true"
+      canal.instance.gtidon: "false"
+      canal.instance.filter.regex: ".*\\..*"
+      canal.instance.spring.startup.auto: "true"
+    volumes:
+      - ~/microservices/canal/conf:/home/canal/conf
+    ports:
+      - "11111:11111"
+    networks:
+      - microservices-net
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+  # 第一组微服务 (user-service, job-service, chat-service)
+  
+  # 用户服务
+  boss-user-service:
+    build: .
+    image: boss-system:latest
+    container_name: boss-user-service
+    ports:
+      - "9000:9000"
+    networks:
+      - microservices-net
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_SERVER_ADDR=nacos:8848
+    command: ["java", "-jar", "boss-user-service.jar"]
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+
+  # 职位服务
+  boss-job-service:
+    build: .
+    image: boss-system:latest
+    container_name: boss-job-service
+    ports:
+      - "9020:9020"
+    networks:
+      - microservices-net
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_SERVER_ADDR=nacos:8848
+    command: ["java", "-jar", "boss-job-service.jar"]
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+
+  # 聊天服务
+  boss-chat-service:
+    build: .
+    image: boss-system:latest
+    container_name: boss-chat-service
+    ports:
+      - "9040:9040"
+    networks:
+      - microservices-net
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_SERVER_ADDR=nacos:8848
+    command: ["java", "-jar", "boss-chat-service.jar"]
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - kafka
+
+  # 第二组微服务 (ai-service, search-service)
+  
+  # AI服务
+  boss-ai-service:
+    build: .
+    image: boss-system:latest
+    container_name: boss-ai-service
+    ports:
+      - "9060:9060"
+    networks:
+      - microservices-net
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_SERVER_ADDR=nacos:8848
+    command: ["java", "-jar", "boss-ai-service.jar"]
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - kafka
+      - boss-chat-service
+      - boss-user-service
+
+  # 搜索服务
+  boss-search-service:
+    build: .
+    image: boss-system:latest
+    container_name: boss-search-service
+    ports:
+      - "9080:9080"
+    networks:
+      - microservices-net
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_SERVER_ADDR=nacos:8848
+    command: ["java", "-jar", "boss-search-service.jar"]
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - elasticsearch
+      - canal
+      - boss-user-service
+      - boss-job-service
+      - boss-chat-service
+
+  # 网关服务
+  boss-gateway:
+    build: .
+    image: boss-system:latest
+    container_name: boss-gateway
+    ports:
+      - "30000:30000"
+    networks:
+      - microservices-net
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_SERVER_ADDR=nacos:8848
+    command: ["java", "-jar", "boss-gateway.jar"]
+    depends_on:
+      - boss-user-service
+      - boss-job-service
+      - boss-chat-service
+      - boss-ai-service
+      - boss-search-service
+
+networks:
+  microservices-net:
+    driver: bridge
+    name: microservices-network

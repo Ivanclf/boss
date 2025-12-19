@@ -1,6 +1,5 @@
 package com.boss.bossjobservice.service.serviceImpl;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.boss.bosscommon.exception.clientException;
 import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
 import com.boss.bosscommon.pojo.dto.JobInsertDTO;
@@ -141,5 +140,15 @@ public class JobServiceImpl implements JobsService {
             results.add(jobElasticsearchDTO);
         }
         return results;
+    }
+
+    @Override
+    public Job queryJobForElasticsearch(Long uid) {
+        return jobsMapper.getJobByUid(uid);
+    }
+
+    @Override
+    public List<JobTag> queryTagsForElasticsearch(Long uid) {
+        return jobTagMapper.getTagsByUid(uid);
     }
 }

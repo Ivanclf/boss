@@ -1,15 +1,11 @@
 package com.boss.bosschatservice.service.serviceImpl;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.boss.bosschatservice.mapper.ConversationMapper;
 import com.boss.bosschatservice.service.ConversationService;
 import com.boss.bosscommon.clients.UserClient;
 import com.boss.bosscommon.pojo.dto.ChatMessageElasticsearchDTO;
-import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
 import com.boss.bosscommon.pojo.entity.ChatRecord;
-import com.boss.bosscommon.pojo.entity.Job;
-import com.boss.bosscommon.pojo.entity.JobTag;
 import com.boss.bosscommon.pojo.vo.ChatLatestListVO;
 import com.boss.bosscommon.pojo.vo.ChatRecordVO;
 import com.github.pagehelper.PageHelper;

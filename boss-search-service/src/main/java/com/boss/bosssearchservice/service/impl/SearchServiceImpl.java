@@ -35,11 +35,8 @@ import static com.boss.bosssearchservice.constants.JobIndexConstant.JOB_INDEX;
 @Slf4j
 public class SearchServiceImpl implements SearchService {
 
-    private final RestHighLevelClient client;
-
-    public SearchServiceImpl(RestHighLevelClient restHighLevelClient) {
-        this.client = restHighLevelClient;
-    }
+    @Resource
+    private RestHighLevelClient client;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;

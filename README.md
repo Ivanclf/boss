@@ -6,39 +6,7 @@
 
 ## 服务架构
 
-```
-┌─────────────────┐    ┌──────────────────┐
-│   API Gateway   │◄──►│  Nacos Registry  │
-└─────────────────┘    └──────────────────┘
-       │
-       ├─►┌────────────────────┐
-       │  │  User Service      │ (用户服务)
-       │  └────────────────────┘
-       │
-       ├─►┌────────────────────┐
-       │  │  Job Service       │ (职位服务)
-       │  └────────────────────┘
-       │
-       ├─►┌────────────────────┐
-       │  │  Chat Service      │ (聊天服务)
-       │  └────────────────────┘
-       │
-       ├─►┌────────────────────┐
-       │  │  AI Service        │ (AI面试服务)
-       │  └────────────────────┘
-       │
-       └─►┌────────────────────┐
-          │  Search Service    │ (搜索服务)
-          └────────────────────┘
-
-┌─────────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│   MySQL DBs     │    │  Redis Cache     │    │  Kafka MQ        │
-└─────────────────┘    └──────────────────┘    └──────────────────┘
-
-┌─────────────────┐    ┌──────────────────┐
-│ Elasticsearch   │    │  Ollama AI       │
-└─────────────────┘    └──────────────────┘
-```
+![架构示意图](structure.png)
 
 ## 服务模块说明
 
@@ -71,6 +39,7 @@
 ### 6. boss-search-service (搜索服务)
 - 端口: 9080
 - 功能: 基于Elasticsearch的全文搜索
+- 使用Canal实现MySQL到Elasticsearch的数据同步
 
 ### 7. boss-common (公共模块)
 - 存放公共实体类、工具类、常量定义等
@@ -97,15 +66,8 @@
 #### 5. Elasticsearch
 提供职位、申请记录和聊天记录的全文搜索功能。
 
-### 计划使用但尚未集成的组件
-
-#### Canal
-阿里巴巴开源的MySQL binlog增量订阅&消费组件，可用于:
-- 实现MySQL到Elasticsearch的数据同步
-- 监听数据库变更事件
-- 实现实时数据分析
-
-将来可以通过Canal监听MySQL的binlog日志，将用户、职位、聊天等数据的变更实时同步到Elasticsearch，从而提升搜索服务的数据实时性。
+#### 6. Canal
+通过Canal监听MySQL的binlog日志，将用户、职位、聊天等数据的变更实时同步到Elasticsearch，从而提升搜索服务的数据实时性。
 
 ### 可选组件
 
@@ -129,9 +91,10 @@
 - Docker (推荐)
 
 ### 启动顺序
-1. 启动基础组件: MySQL, Redis, Nacos, Kafka, Elasticsearch
-2. 启动各微服务: user-service, job-service, chat-service, ai-service, search-service
-3. 最后启动API网关: boss-gateway
+1. 启动基础组件: MySQL, Redis, Nacos, Kafka, Elasticsearch, Canal
+2. 启动第一组微服务: user-service, job-service, chat-service
+3. 启动第二组微服务: ai-service, search-service
+4. 最后启动API网关: boss-gateway
 
 ### Docker部署
 项目提供了Dockerfile，支持容器化部署。

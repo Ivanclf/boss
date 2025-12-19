@@ -36,3 +36,8 @@ logging:
 elasticsearch:
   host: ${elasticsearch.host}
   port: ${elasticsearch.port}
+
+canal:
+  host: ${canal.host}
+  port: 11111
+  destination: ${canal.destination}

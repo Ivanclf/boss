@@ -3,12 +3,9 @@ package com.boss.bosssearchservice.config;
 import com.alibaba.fastjson.JSON;
 import com.boss.bosscommon.clients.ChatsClient;
 import com.boss.bosscommon.clients.JobsClient;
-import com.boss.bosscommon.clients.UserClient;
 import com.boss.bosscommon.pojo.dto.ChatMessageElasticsearchDTO;
 import com.boss.bosscommon.pojo.dto.JobApplyElasticsearchDTO;
 import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
-import com.boss.bosssearchservice.constants.JobApplyIndexConstant;
-import com.boss.bosssearchservice.constants.JobIndexConstant;
 import com.boss.bosssearchservice.service.GetInfoService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -41,12 +38,8 @@ import static com.boss.bosssearchservice.constants.JobIndexConstant.JOB_SCRIPT;
 @Slf4j
 public class Init {
 
-    private final RestHighLevelClient client;
-
-    public Init(RestHighLevelClient client) {
-        this.client = client;
-    }
-
+    @Resource
+    private RestHighLevelClient client;
     @Resource
     private GetInfoService getInfoService;
     @Resource
@@ -132,6 +125,18 @@ public class Init {
         client.bulk(bulkRequest, RequestOptions.DEFAULT);
     }
 
+    private void initJobIndex() throws IOException {
+        List<JobElasticsearchDTO> docs =
+                jobsClient.initElasticsearch();
+        bulkSave(
+                JOB_INDEX,
+                dto -> dto.getUid().toString(),
+                docs
+        );
+
+        log.info("job_index 初始化完成，文档数：{}", docs.size());
+    }
+
     private void initJobApplyIndex() throws IOException {
         List<JobApplyElasticsearchDTO> docs =
                 getInfoService.queryForElasticsearch();
@@ -142,18 +147,6 @@ public class Init {
         );
 
         log.info("job_apply_index 初始化完成，文档数：{}", docs.size());
-    }
-
-    private void initJobIndex() throws IOException {
-        List<JobElasticsearchDTO> docs =
-                jobsClient.updateElasticsearch();
-        bulkSave(
-                JOB_INDEX,
-                dto -> dto.getUid().toString(),
-                docs
-        );
-
-        log.info("job_index 初始化完成，文档数：{}", docs.size());
     }
 
     private void initChatMessageIndex() throws IOException {
