@@ -30,7 +30,6 @@ public class AuthFilter implements GlobalFilter {
 
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
-    // 不需要鉴权的路径
     private static final List<String> WHITE_LIST = List.of(
             "/user/auth/login",
             "/user/auth/register"

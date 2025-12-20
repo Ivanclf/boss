@@ -38,6 +38,7 @@
             <if test="role != null">
                 role,
             </if>
+            deleted,
         </trim>
         <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
             <if test="uid != null">
@@ -58,6 +59,7 @@
             <if test="role != null">
                 #{role},
             </if>
+            0,
         </trim>
     </insert>
 </mapper>

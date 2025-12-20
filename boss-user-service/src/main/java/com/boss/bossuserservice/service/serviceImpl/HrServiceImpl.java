@@ -29,7 +29,7 @@ public class HrServiceImpl implements HrService {
         PageHelper.startPage(pageNum, pageSize);
 
         UserJobApply userJobApply = UserJobApply.builder()
-                .hrUid((Long) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"))
+                .hrUid(Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid")))
                 .jobUid(jobUid)
                 .status(status)
                 .build();

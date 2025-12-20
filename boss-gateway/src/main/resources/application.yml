@@ -34,6 +34,19 @@ spring:
             - Path=/ai/**
           filters:
             - StripPrefix=1
+        - id: boss-search-service
+          uri: lb://boss-search-service
+          predicates:
+            - Path=/search/**
+          filters:
+            - StripPrefix=1
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration

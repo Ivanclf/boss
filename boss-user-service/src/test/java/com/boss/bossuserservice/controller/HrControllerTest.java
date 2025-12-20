@@ -1,0 +1,96 @@
+package com.boss.bossuserservice.controller;
+
+import com.boss.bosscommon.pojo.dto.UserApplyChangeDTO;
+import com.boss.bosscommon.pojo.dto.UserLoginPasswordDTO;
+import com.boss.bosscommon.pojo.dto.UserLogoutDTO;
+import com.boss.bosscommon.pojo.vo.UserBasicVO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@Slf4j
+public class HrControllerTest {
+
+    @Resource
+    private MockMvc mockMvc;
+    @Resource
+    private ObjectMapper objectMapper;
+
+    private String token;
+    private static final String TEST_PHONE = "18787654321";
+    private static final Integer TEST_ROLE = 1;
+    private static final String TEST_PASSWORD = "123456";
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        String loginObject = mockMvc
+                .perform(post("/user/auth/login/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                UserLoginPasswordDTO.builder()
+                                        .phone(TEST_PHONE)
+                                        .password(TEST_PASSWORD)
+                                        .role(TEST_ROLE)
+                                        .build())))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        UserBasicVO userBasicVO = objectMapper.readValue(loginObject, UserBasicVO.class);
+        token = userBasicVO.getAuthorization();
+        assertNotNull(token, "Token should not be null");
+    }
+
+    @AfterEach
+    public void tearDown() throws Exception {
+        mockMvc.perform(post("/user/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, token)
+                        .content(objectMapper.writeValueAsString(
+                                UserLogoutDTO.builder()
+                                        .phone(TEST_PHONE)
+                                        .role(TEST_ROLE)
+                                        .build()
+                        )))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testHrGetApplications() throws Exception {
+        mockMvc.perform(get("/hr/applications")
+                        .header(HttpHeaders.AUTHORIZATION, token)
+                        .param("pageNum", "1")
+                        .param("pageSize", "10"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testHrUpdateApplicationStatus() throws Exception {
+        UserApplyChangeDTO userApplyChangeDTO = UserApplyChangeDTO.builder()
+                .id(7401095183904935936L)
+                .status(2)
+                .build();
+
+        mockMvc.perform(put("/hr/applications")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userApplyChangeDTO)))
+                .andExpect(status().isOk());
+    }
+}

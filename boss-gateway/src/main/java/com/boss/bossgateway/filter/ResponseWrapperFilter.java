@@ -30,18 +30,23 @@ public class ResponseWrapperFilter implements GlobalFilter {
         ServerHttpResponse response = exchange.getResponse();
         HttpHeaders headers = response.getHeaders();
 
+        boolean isWebSocketRequest = exchange.getRequest().getHeaders().containsKey("Sec-WebSocket-Protocol");
+        boolean isSseRequest = headers.getContentType() != null && headers.getContentType().includes(MediaType.TEXT_EVENT_STREAM);
+
+        if (isWebSocketRequest || isSseRequest) {
+            return chain.filter(exchange);
+        }
+
         ServerHttpResponse decoratedResponse = new ServerHttpResponseDecorator(response) {
             @Override
             public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-                if(headers.getContentType() != null && (
+                if (headers.getContentType() != null && (
                         headers.getContentType().includes(MediaType.TEXT_EVENT_STREAM) ||
-                                headers.getContentType().includes(MediaType.APPLICATION_OCTET_STREAM)
-                        )) {
+                                headers.getContentType().includes(MediaType.APPLICATION_OCTET_STREAM))) {
                     return super.writeWith(body);
                 }
 
-                if(body instanceof Flux<? extends DataBuffer> fluxBody) {
-
+                if (body instanceof Flux<? extends DataBuffer> fluxBody) {
                     return super.writeWith(fluxBody.buffer().map(dataBuffers -> {
                         DataBufferFactory dataBufferFactory = response.bufferFactory();
                         DataBuffer join = dataBufferFactory.join(dataBuffers);
@@ -53,21 +58,9 @@ public class ResponseWrapperFilter implements GlobalFilter {
 
                             if (getStatusCode().is2xxSuccessful()) {
                                 ObjectMapper objectMapper = new ObjectMapper();
-                                Object data;
-
-                                // 尝试解析JSON
-                                try {
-                                    data = objectMapper.readValue(originalResponse, Object.class);
-                                } catch (Exception e) {
-                                    // 如果不是JSON，直接作为字符串处理
-                                    data = originalResponse;
-                                }
-
-                                // 包装响应
-                                Result<Object> wrappedResult = Result.success(data);
+                                Result<Object> wrappedResult = Result.success(originalResponse);
                                 String wrappedResponse = objectMapper.writeValueAsString(wrappedResult);
 
-                                // 返回新的数据缓冲区
                                 byte[] wrappedBytes = wrappedResponse.getBytes(StandardCharsets.UTF_8);
                                 return dataBufferFactory.wrap(wrappedBytes);
                             } else {
@@ -88,6 +81,7 @@ public class ResponseWrapperFilter implements GlobalFilter {
                 return writeWith(Flux.from(body).flatMapSequential(p -> p));
             }
         };
+
         return chain.filter(exchange.mutate().response(decoratedResponse).build());
     }
 }

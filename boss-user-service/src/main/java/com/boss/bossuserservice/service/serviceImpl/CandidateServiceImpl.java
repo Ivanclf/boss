@@ -44,14 +44,13 @@ public class CandidateServiceImpl implements CandidateService {
         LocalDateTime now = LocalDateTime.now();
         UserJobApply userJobApply = UserJobApply.builder()
                 .id(generateId())
-                .candidateUid((Long) map.get("uid"))
+                .candidateUid(Long.valueOf((String) map.get("uid")))
                 .hrUid(jobBasicInfo.getHrUid())
                 .jobUid(jobBasicInfo.getUid())
                 .status(PENDING)
                 .applyMsg(userJobApplyDTO.getApplyMsg())
                 .createTime(now)
                 .updateTime(now)
-                .deleted(0)
                 .build();
         candidateMapper.insertUserJobApply(userJobApply);
     }

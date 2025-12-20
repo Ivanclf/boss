@@ -38,6 +38,7 @@
             <if test="updateTime != null">
                 update_time,
             </if>
+            deleted,
         </trim>
         <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
             <if test="uid != null">
@@ -73,6 +74,7 @@
             <if test="updateTime != null">
                 #{updateTime},
             </if>
+            0,
         </trim>
     </insert>
 

@@ -58,7 +58,7 @@ public class ProfileServiceImpl implements ProfileService {
                 .deleted(userUpdateDTO.getDeleted())
                 .role(null)
                 .updateTime(LocalDateTime.now())
-                .uid((Long) map.get("uid"))
+                .uid(Long.valueOf((String) map.get("uid")))
                 .build();
         profileMapper.update(user);
 

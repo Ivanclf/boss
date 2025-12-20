@@ -8,8 +8,10 @@ import com.boss.bosscommon.pojo.dto.UserRegistryDTO;
 import com.boss.bosscommon.pojo.vo.UserBasicVO;
 import com.boss.bossuserservice.service.AuthService;
 import jakarta.annotation.Resource;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import static com.boss.bosscommon.constant.NameConstant.DEFAULT_USER;
 import static com.boss.bosscommon.util.Md5Util.string2Md5;
 import static com.boss.bosscommon.util.RegexUtil.isPhoneValid;
 
@@ -34,8 +36,8 @@ public class AuthController {
             throw new clientException("请输入正确的手机号");
         }
         userRegistryDTO.setPassword(string2Md5(userRegistryDTO.getPassword()));
-        if(userRegistryDTO.getName().isBlank()) {
-            userRegistryDTO.setName("用户_" + RandomUtil.randomString(8));
+        if(!StringUtils.hasText(userRegistryDTO.getName())) {
+            userRegistryDTO.setName(DEFAULT_USER + RandomUtil.randomString(8));
         }
         return authService.registryByPassword(userRegistryDTO);
     }

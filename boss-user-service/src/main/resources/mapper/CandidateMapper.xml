@@ -13,6 +13,7 @@
             <if test="applyMsg != null">apply_msg,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateTime != null">update_time,</if>
+            deleted,
         </trim>
         <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
             <if test="id != null">#{id},</if>
@@ -23,6 +24,7 @@
             <if test="applyMsg != null">#{applyMsg},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateTime != null">#{updateTime},</if>
+            0,
         </trim>
     </insert>
 </mapper>

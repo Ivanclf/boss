@@ -85,7 +85,6 @@ public class AuthServiceImpl implements AuthService {
                 .role(userRegistryDTO.getRole())
                 .name(userRegistryDTO.getName())
                 .avatar("http://localhost:8080")
-                .deleted(0)
                 .createTime(LocalDateTime.now())
                 .uid(generateId())
                 .build();
@@ -118,11 +117,11 @@ public class AuthServiceImpl implements AuthService {
         String key = LOGIN_USER_KEY + token;
 
         Map<Object, Object> map = stringRedisTemplate.opsForHash().entries(key);
-        if(map.isEmpty() || map.get("role") != role) {
+        if(map.isEmpty() || !map.get("role").equals(role.toString())) {
             throw new clientException("用户已登出");
         }
 
-        stringRedisTemplate.opsForHash().delete(key);
+        stringRedisTemplate.delete(key);
         log.info("用户 {} 已成功登出", phone);
     }
 }
