@@ -8,10 +8,13 @@ import com.boss.bosscommon.pojo.entity.ChatMessage;
 import com.boss.bosscommon.pojo.entity.ChatRecord;
 import com.boss.bosscommon.pojo.vo.ChatLatestListVO;
 import com.boss.bosscommon.pojo.vo.ChatRecordVO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -34,13 +37,17 @@ public class ConversationServiceImpl implements ConversationService {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
     @Resource
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private KafkaTemplate<String, String> kafkaTemplate;
+    @Resource
+    private ObjectMapper objectMapper;
+    @Value("${kafka.topics.chat-record-topic}")
+    private String chatRecordTopic;
     
     @Override
     public PageInfo<ChatLatestListVO> getConversationList(String token, int pageNum, int pageSize) {
         PageHelper.startPage(pageNum, pageSize);
 
-        Long userUid = (Long) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long userUid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
 
         List<ChatRecord> allChatList = conversationMapper.getAllRelatedChat(userUid);
 
@@ -59,7 +66,7 @@ public class ConversationServiceImpl implements ConversationService {
     public PageInfo<ChatRecordVO> getChatRecord(String token, int pageNum, int pageSize, Long uid) {
         PageHelper.startPage(pageNum, pageSize);
 
-        Long fromUid = (Long) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long fromUid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
 
         List<ChatRecord> chatRecords = conversationMapper.getChatByUids(fromUid, uid);
 
@@ -79,13 +86,13 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
-    public void saveChatRecord(Long fromUid, Long toUid, String message, Integer role) {
+    public void saveChatRecord(Long fromUid, Long toUid, String message, Integer role) throws JsonProcessingException {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setFromUid(fromUid);
         chatMessage.setToUid(toUid);
         chatMessage.setMessage(message);
 
-        kafkaTemplate.send("chat-record-topic", chatMessage);
+        kafkaTemplate.send(chatRecordTopic, objectMapper.writeValueAsString(chatMessage));
         log.info("聊天消息已发送到Kafka: fromUid={}, toUid={}, message={}", fromUid, toUid, message);
     }
 

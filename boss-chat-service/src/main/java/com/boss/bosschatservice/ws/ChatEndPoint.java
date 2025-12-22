@@ -2,7 +2,10 @@ package com.boss.bosschatservice.ws;
 
 import com.boss.bosschatservice.config.WebSocketHandShakeInterceptor;
 import com.boss.bosschatservice.service.ConversationService;
+import com.boss.bosschatservice.util.SpringContextUtil;
+import com.boss.bosscommon.exception.clientException;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import jakarta.websocket.OnClose;
@@ -28,36 +31,62 @@ import static com.boss.bosscommon.constant.RedisConstant.LOGIN_USER_KEY;
 public class ChatEndPoint {
 
     private static final Map<Long, Session> onlineUsers = new ConcurrentHashMap<>();
+    private static final Map<Session, Long> authenticatedUsers = new ConcurrentHashMap<>();
 
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
-    @Resource
-    private ConversationService conversationService;
+    private static final StringRedisTemplate stringRedisTemplate;
+    private static final ConversationService conversationService;
+    private static final ObjectMapper objectMapper;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    static {
+        stringRedisTemplate = SpringContextUtil.getBean(StringRedisTemplate.class);
+        conversationService = SpringContextUtil.getBean(ConversationService.class);
+        objectMapper = SpringContextUtil.getBean(ObjectMapper.class);
+    }
+
 
     @OnOpen
     public void onOpen(Session session) {
-        String token = (String) session.getUserProperties().get("authorization");
-        if (token != null) {
-            String key = LOGIN_USER_KEY + token;
-            Object uidObj = stringRedisTemplate.opsForHash().get(key, "uid");
-            if (uidObj != null) {
-                Long uid = null;
-                try {
-                    uid = Long.valueOf(uidObj.toString());
-                } catch (Exception e) {
-                    log.error("uid 转换失败", e);
-                }
-                if (uid != null) {
-                    onlineUsers.put(uid, session);
-                }
-            }
-        }
+        log.info("WebSocket 链接建立: {}", session.getId());
     }
 
     @OnMessage
     public void onMessage(String message, Session session) {
+        if (!authenticatedUsers.containsKey(session)) {
+            try {
+                String token = message.trim();
+                String key = LOGIN_USER_KEY + token;
+                Object uidObj = stringRedisTemplate.opsForHash().get(key, "uid");
+                
+                if (uidObj != null) {
+                    Long uid = null;
+                    try {
+                        uid = Long.valueOf(uidObj.toString());
+                    } catch (Exception e) {
+                        log.error("uid 转换失败", e);
+                    }
+                    
+                    if (uid != null) {
+                        authenticatedUsers.put(session, uid);
+                        onlineUsers.put(uid, session);
+
+                        session.getBasicRemote().sendText("{\"type\":\"auth\",\"status\":\"success\"}");
+                        log.info("用户 {} 认证成功", uid);
+                        return;
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Token解析或验证失败", e);
+            }
+
+            try {
+                session.getBasicRemote().sendText("{\"type\":\"auth\",\"status\":\"failed\",\"message\":\"Authentication failed\"}");
+                session.close();
+            } catch (IOException ioException) {
+                log.error("关闭连接失败", ioException);
+            }
+            return;
+        }
+
         ChatMessage msgObj;
         try {
             msgObj = objectMapper.readValue(message, ChatMessage.class);
@@ -66,13 +95,7 @@ public class ChatEndPoint {
             return;
         }
 
-        Long senderUid = null;
-        for (Map.Entry<Long, Session> entry : onlineUsers.entrySet()) {
-            if (entry.getValue() == session) {
-                senderUid = entry.getKey();
-                break;
-            }
-        }
+        Long senderUid = authenticatedUsers.get(session);
         if (senderUid == null) {
             log.warn("未找到发送者uid");
             return;
@@ -99,20 +122,21 @@ public class ChatEndPoint {
             }
         }
 
-        conversationService.saveChatRecord(senderUid, toUid, msgObj.getMessage(), CHAT_HUMAN_RESOURCES);
+        try {
+            conversationService.saveChatRecord(senderUid, toUid, msgObj.getMessage(), CHAT_HUMAN_RESOURCES);
+        } catch (JsonProcessingException e) {
+            throw new clientException("数据写入数据库失败");
+        }
     }
 
     @OnClose
     public void onClose(Session session) {
-        Long offlineUid = null;
-        for (Map.Entry<Long, Session> entry : onlineUsers.entrySet()) {
-            if (entry.getValue() == session) {
-                offlineUid = entry.getKey();
-                break;
-            }
-        }
-        if (offlineUid != null) {
-            onlineUsers.remove(offlineUid);
+        Long uid = authenticatedUsers.remove(session);
+        if (uid != null) {
+            onlineUsers.remove(uid);
+            log.info("用户 {} 断开连接", uid);
+        } else {
+            log.info("未认证的连接 {} 关闭", session.getId());
         }
     }
 

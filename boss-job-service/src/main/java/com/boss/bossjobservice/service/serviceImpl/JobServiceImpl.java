@@ -37,7 +37,7 @@ public class JobServiceImpl implements JobsService {
     @Override
     @Transactional
     public void insert(String token, JobInsertDTO jobInsertDTO) {
-        Long hrUid = (Long) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long hrUid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
         if(hrUid == null) {
             throw new clientException("用户未登录");
         }

@@ -106,7 +106,7 @@ public class SearchServiceImpl implements SearchService {
 
         BoolQueryBuilder bool = QueryBuilders.boolQuery();
 
-        Long uid = (Long) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long uid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
         if(uid == null) {
             throw new ClientAbortException("用户未登录");
         }
@@ -171,7 +171,7 @@ public class SearchServiceImpl implements SearchService {
 
         BoolQueryBuilder bool = QueryBuilders.boolQuery();
 
-        Long uid = (Long) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long uid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
         if(uid == null) {
             throw new ClientAbortException("用户未登录");
         }

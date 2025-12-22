@@ -49,7 +49,7 @@ public class InterviewServiceImpl implements InterviewService {
     @Override
     public Flux<String> start(String token) {
         String sessionId = UUID.randomUUID().toString();
-        Long userUid = (Long) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long userUid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
 
         if(userUid == null) {
             throw new clientException("用户未登录");
@@ -94,7 +94,7 @@ public class InterviewServiceImpl implements InterviewService {
 
     @Override
     public Flux<String> question(ChatMessage userChatMessage, String token) {
-        Long userUid = (Long) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long userUid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
         userChatMessage.setFromUid(userUid);
         userChatMessage.setToUid(AI_UID);
 
@@ -130,7 +130,7 @@ public class InterviewServiceImpl implements InterviewService {
 
     @Override
     public PageInfo<ChatRecordVO> getHistory(String token, int pageNum, int pageSize) {
-        Long uid = (Long) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long uid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
         return chatsClient.getAiChatRecord(uid, pageNum, pageSize);
     }
 }

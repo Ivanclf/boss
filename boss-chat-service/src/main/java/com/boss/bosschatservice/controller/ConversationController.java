@@ -40,7 +40,7 @@ public class ConversationController {
     }
 
     @PostMapping("/save/{role}")
-    public void save(@RequestBody ChatMessage chatMessage, @PathVariable Integer role) {
+    public void save(@RequestBody ChatMessage chatMessage, @PathVariable Integer role) throws Exception{
         conversationService.saveChatRecord(chatMessage.getFromUid(), chatMessage.getToUid(), chatMessage.getMessage(), role);
     }
 
