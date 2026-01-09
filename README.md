@@ -6,7 +6,7 @@
 
 ## 服务架构
 
-![架构示意图](structure.png)
+![架构示意图](images/structure.png)
 
 ## 服务模块说明
 
@@ -58,3 +58,27 @@
 2. 启动第一组微服务: user-service, job-service, chat-service
 3. 启动第二组微服务: ai-service, search-service
 4. 最后启动API网关: boss-gateway
+
+## 结果展示
+
+需要用到的 docker 镜像在启动后的情况应为
+
+![docker镜像情况](./images/docker.png)
+
+项目**按顺序**启动后的情况为（若不按顺序则第二组微服务无法启动）
+
+![项目启动结果](./images/result.png)
+
+nacos 中的注册情况
+
+![服务全部成功注册](./images/nacos.png)
+
+登录接口测试
+
+![成功返回用户基本信息](./images/login.png)
+
+Websocket 测试
+
+![测试登录](./images/wstest1.png)
+
+![测试通信](./images/wstest2.png)
