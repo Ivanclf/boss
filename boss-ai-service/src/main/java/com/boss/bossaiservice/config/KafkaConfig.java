@@ -2,6 +2,7 @@ package com.boss.bossaiservice.config;
 
 import lombok.Data;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.TopicPartition;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -65,9 +66,9 @@ public class KafkaConfig {
                         (record, exception) -> {
                             // 根据异常类型决定发送到重试队列还是死信队列
                             if (exception.getCause() instanceof RuntimeException) {
-                                return new org.apache.kafka.common.TopicPartition(interviewTopic, record.partition());
+                                return new TopicPartition(interviewTopic, record.partition());
                             }
-                            return new org.apache.kafka.common.TopicPartition(deadLetterTopic, record.partition());
+                            return new TopicPartition(deadLetterTopic, record.partition());
                         });
 
         // 配置错误处理器：重试3次，间隔1秒

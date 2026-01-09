@@ -58,6 +58,7 @@ public class ResponseWrapperFilter implements GlobalFilter {
 
                             if (getStatusCode().is2xxSuccessful()) {
                                 ObjectMapper objectMapper = new ObjectMapper();
+                                // 核心包装操作
                                 Result<Object> wrappedResult = Result.success(originalResponse);
                                 String wrappedResponse = objectMapper.writeValueAsString(wrappedResult);
 

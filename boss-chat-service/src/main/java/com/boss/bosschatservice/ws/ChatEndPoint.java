@@ -30,7 +30,9 @@ import static com.boss.bosscommon.constant.RedisConstant.LOGIN_USER_KEY;
 @Component
 public class ChatEndPoint {
 
+    // 存储在线用户的映射关系，以向特定用户推送消息
     private static final Map<Long, Session> onlineUsers = new ConcurrentHashMap<>();
+    // 存储已认证绘画的用户表示，验证当前的用户会话是否是有效用户连接
     private static final Map<Session, Long> authenticatedUsers = new ConcurrentHashMap<>();
 
     private static final StringRedisTemplate stringRedisTemplate;
