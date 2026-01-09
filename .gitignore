@@ -5,6 +5,6 @@
 **/mvnw.cmd
 **/mvnw
 **/HELP.md
-**/application-dev.yml
+#**/application-dev.yml
 **/applocation-prod.yml
 **/target/
