@@ -15,6 +15,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.boss.bosscommon.constant.RedisConstant.LOGIN_USER_KEY;
@@ -30,8 +31,8 @@ public class AuthFilter implements GlobalFilter {
 
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
-    private static final List<String> WHITE_LIST = List.of(
-            "/user/auth/login",
+    private static final Set<String> WHITE_LIST = Set.of(
+            "/user/auth/login/**",
             "/user/auth/register"
     );
 
@@ -42,10 +43,8 @@ public class AuthFilter implements GlobalFilter {
 
         String path = request.getURI().getPath();
 
-        for (String pattern : WHITE_LIST) {
-            if (antPathMatcher.match(pattern, path)) {
-                return chain.filter(exchange);
-            }
+        if (WHITE_LIST.stream().anyMatch(patten -> antPathMatcher.match(patten, path))) {
+            return chain.filter(exchange);
         }
 
         String token = request.getHeaders().getFirst("Authorization");

@@ -14,32 +14,27 @@ spring:
           uri: lb://boss-user-service
           predicates:
             - Path=/user/**
-          filters:
-            - StripPrefix=1
+          
         - id: boss-job-service
           uri: lb://boss-job-service
           predicates:
             - Path=/jobs/**
-          filters:
-            - StripPrefix=1
+          
         - id: boss-chat-service
           uri: lb://boss-chat-service
           predicates:
             - Path=/chat/**
-          filters:
-            - StripPrefix=1
+          
         - id: boss-ai-service
           uri: lb://boss-ai-service
           predicates:
             - Path=/ai/**
-          filters:
-            - StripPrefix=1
+          
         - id: boss-search-service
           uri: lb://boss-search-service
           predicates:
             - Path=/search/**
-          filters:
-            - StripPrefix=1
+          
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
