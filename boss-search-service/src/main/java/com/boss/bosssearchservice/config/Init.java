@@ -128,11 +128,14 @@ public class Init {
     private void initJobIndex() throws IOException {
         List<JobElasticsearchDTO> docs =
                 jobsClient.initElasticsearch();
-        bulkSave(
-                JOB_INDEX,
-                dto -> dto.getUid().toString(),
-                docs
-        );
+        if(docs != null) {
+            bulkSave(
+                    JOB_INDEX,
+                    dto -> dto.getUid().toString(),
+                    docs
+            );
+        }
+
 
         log.info("job_index 初始化完成，文档数：{}", docs.size());
     }
@@ -140,11 +143,13 @@ public class Init {
     private void initJobApplyIndex() throws IOException {
         List<JobApplyElasticsearchDTO> docs =
                 getInfoService.queryForElasticsearch();
-        bulkSave(
-                JOB_APPLY_INDEX,
-                dto -> dto.getApplyId().toString(),
-                docs
-        );
+        if(docs != null) {
+            bulkSave(
+                    JOB_APPLY_INDEX,
+                    dto -> dto.getApplyId().toString(),
+                    docs
+            );
+        }
 
         log.info("job_apply_index 初始化完成，文档数：{}", docs.size());
     }

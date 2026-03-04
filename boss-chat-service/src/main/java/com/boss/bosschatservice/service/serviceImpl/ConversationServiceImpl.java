@@ -71,7 +71,7 @@ public class ConversationServiceImpl implements ConversationService {
         List<ChatRecord> chatRecords = conversationMapper.getChatByUids(fromUid, uid);
 
         List<ChatRecordVO> chatRecordVOS = chatRecords.stream().map(chatRecord -> {
-            ChatRecordVO chatRecordVO = ChatRecordVO.builder()
+            return ChatRecordVO.builder()
                     .status(chatRecord.getStatus())
                     .fromUid(chatRecord.getFromUid())
                     .toUid(chatRecord.getToUid())
@@ -79,7 +79,6 @@ public class ConversationServiceImpl implements ConversationService {
                     .createTime(chatRecord.getCreateTime())
                     .context(chatRecord.getContext())
                     .build();
-            return chatRecordVO;
         }).toList();
 
         return new PageInfo<>(chatRecordVOS);
