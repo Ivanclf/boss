@@ -26,26 +26,32 @@ public class HrServiceImpl implements HrService {
     private StringRedisTemplate stringRedisTemplate;
     @Override
     public PageInfo<UserHrShowVO> hetApplyList(String token, Long jobUid, Integer status, int pageNum, int pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
+        try {
+            PageHelper.startPage(pageNum, pageSize);
 
-        UserJobApply userJobApply = UserJobApply.builder()
-                .hrUid(Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid")))
-                .jobUid(jobUid)
-                .status(status)
-                .build();
+            Object uid = stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
 
-        List<UserHrShowVO> userHrShowVOS = hrMapper.getApplyList(userJobApply)
-                .stream().map(userJobApply1 -> UserHrShowVO.builder()
-                        .id(userJobApply1.getId())
-                        .candidateUid(userJobApply1.getCandidateUid())
-                        .jobUid(userJobApply1.getJobUid())
-                        .status(userJobApply1.getStatus())
-                        .applyMsg(userJobApply1.getApplyMsg())
-                        .createTime(userJobApply1.getCreateTime())
-                        .updateTime(userJobApply1.getUpdateTime())
-                        .build())
-                        .toList();
-        return new PageInfo<>(userHrShowVOS);
+            UserJobApply userJobApply = UserJobApply.builder()
+                    .hrUid(Long.valueOf(uid instanceof String ? (String) uid : "0"))
+                    .jobUid(jobUid)
+                    .status(status)
+                    .build();
+
+            List<UserHrShowVO> userHrShowVOS = hrMapper.getApplyList(userJobApply)
+                    .stream().map(userJobApply1 -> UserHrShowVO.builder()
+                            .id(userJobApply1.getId())
+                            .candidateUid(userJobApply1.getCandidateUid())
+                            .jobUid(userJobApply1.getJobUid())
+                            .status(userJobApply1.getStatus())
+                            .applyMsg(userJobApply1.getApplyMsg())
+                            .createTime(userJobApply1.getCreateTime())
+                            .updateTime(userJobApply1.getUpdateTime())
+                            .build())
+                            .toList();
+            return new PageInfo<>(userHrShowVOS);
+        } finally {
+            PageHelper.clearPage();
+        }
     }
 
     @Override

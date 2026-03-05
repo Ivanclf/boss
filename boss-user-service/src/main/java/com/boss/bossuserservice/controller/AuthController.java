@@ -6,6 +6,7 @@ import com.boss.bosscommon.pojo.dto.UserLoginPasswordDTO;
 import com.boss.bosscommon.pojo.dto.UserLogoutDTO;
 import com.boss.bosscommon.pojo.dto.UserRegistryDTO;
 import com.boss.bosscommon.pojo.vo.UserBasicVO;
+import com.boss.bosscommon.result.Result;
 import com.boss.bossuserservice.service.AuthService;
 import jakarta.annotation.Resource;
 import org.springframework.util.StringUtils;
@@ -22,28 +23,45 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login/password")
-    public UserBasicVO loginByPassWord(@RequestBody UserLoginPasswordDTO userLoginPasswordDTO) {
+    public Result<UserBasicVO> loginByPassWord(@RequestBody UserLoginPasswordDTO userLoginPasswordDTO) {
         if(!isPhoneValid(userLoginPasswordDTO.getPhone())) {
-            throw new clientException("请输入正确的手机号");
+            return Result.error("请输入正确的手机号");
         }
         userLoginPasswordDTO.setPassword(string2Md5(userLoginPasswordDTO.getPassword()));
-        return authService.loginByPassword(userLoginPasswordDTO);
+
+        try {
+            UserBasicVO userBasicVO = authService.loginByPassword(userLoginPasswordDTO);
+            return Result.success(userBasicVO);
+        } catch (clientException e) {
+            return Result.error(e.getMessage());
+        }
+
     }
 
     @PostMapping("/register")
-    public UserBasicVO registerByPassword(@RequestBody UserRegistryDTO userRegistryDTO) {
+    public Result<UserBasicVO> registerByPassword(@RequestBody UserRegistryDTO userRegistryDTO) {
         if(!isPhoneValid(userRegistryDTO.getPhone())) {
-            throw new clientException("请输入正确的手机号");
+            return Result.error("请输入正确的手机号");
         }
         userRegistryDTO.setPassword(string2Md5(userRegistryDTO.getPassword()));
         if(!StringUtils.hasText(userRegistryDTO.getName())) {
             userRegistryDTO.setName(DEFAULT_USER + RandomUtil.randomString(8));
         }
-        return authService.registryByPassword(userRegistryDTO);
+        try {
+            UserBasicVO userBasicVO = authService.registryByPassword(userRegistryDTO);
+            return Result.success(userBasicVO);
+        } catch (clientException e) {
+            return Result.error(e.getMessage());
+        }
     }
 
     @PostMapping("/logout")
-    public void logout(@RequestHeader("authorization") String token, @RequestBody UserLogoutDTO userLogoutDTO) {
-        authService.logout(userLogoutDTO, token);
+    public Result logout(@RequestHeader("authorization") String token, @RequestBody UserLogoutDTO userLogoutDTO) {
+        try {
+            authService.logout(userLogoutDTO, token);
+        } catch (clientException e) {
+            return Result.error(e.getMessage());
+        }
+        return Result.success();
     }
 }

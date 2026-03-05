@@ -36,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public UserBasicVO loginByPassword(UserLoginPasswordDTO userLoginPasswordDTO) {
+    public UserBasicVO loginByPassword(UserLoginPasswordDTO userLoginPasswordDTO) throws clientException {
         String phone = userLoginPasswordDTO.getPhone();
         String password = userLoginPasswordDTO.getPassword();
         Integer role = userLoginPasswordDTO.getRole();
@@ -58,8 +58,8 @@ public class AuthServiceImpl implements AuthService {
         userBasicVO.setAuthorization(token);
         Map<String, Object> redisMap = BeanUtil.beanToMap(userBasicVO, new HashMap<>(),
                 CopyOptions.create()
-                        .setIgnoreNullValue(true).setFieldValueEditor(
-                                (fieldName, fieldValue) -> fieldValue == null ? null : fieldValue.toString()));
+                        .setIgnoreNullValue(true)
+                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue == null ? null : fieldValue.toString()));
         String key = LOGIN_USER_KEY + token;
         stringRedisTemplate.opsForHash().putAll(key, redisMap);
         stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.HOURS);
@@ -68,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserBasicVO registryByPassword(UserRegistryDTO userRegistryDTO) {
+    public UserBasicVO registryByPassword(UserRegistryDTO userRegistryDTO) throws clientException {
         String phone = userRegistryDTO.getPhone();
         Integer role = userRegistryDTO.getRole();
 
@@ -101,8 +101,8 @@ public class AuthServiceImpl implements AuthService {
         userBasicVO.setAuthorization(token);
         Map<String, Object> redisMap = BeanUtil.beanToMap(userBasicVO, new HashMap<>(),
                 CopyOptions.create()
-                        .setIgnoreNullValue(true).setFieldValueEditor(
-                                (fieldName, fieldValue) -> fieldValue == null ? null : fieldValue.toString()));
+                        .setIgnoreNullValue(true)
+                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue == null ? null : fieldValue.toString()));
         String key = LOGIN_USER_KEY + token;
         stringRedisTemplate.opsForHash().putAll(key, redisMap);
         stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.DAYS);
@@ -111,7 +111,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout(UserLogoutDTO userLogoutDTO, String token) {
+    public void logout(UserLogoutDTO userLogoutDTO, String token) throws clientException {
         String phone = userLogoutDTO.getPhone();
         Integer role = userLogoutDTO.getRole();
         String key = LOGIN_USER_KEY + token;

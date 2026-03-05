@@ -33,7 +33,7 @@ public class CandidateServiceImpl implements CandidateService {
 
     @Override
     @Transactional
-    public void apply(String token, UserJobApplyDTO userJobApplyDTO) {
+    public void apply(String token, UserJobApplyDTO userJobApplyDTO) throws clientException{
         Map<Object, Object> map = stringRedisTemplate.opsForHash().entries(LOGIN_USER_KEY + token);
         if(map.isEmpty()) {
            throw new clientException("token 不正确");

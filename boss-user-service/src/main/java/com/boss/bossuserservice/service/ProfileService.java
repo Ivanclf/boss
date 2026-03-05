@@ -1,5 +1,6 @@
 package com.boss.bossuserservice.service;
 
+import com.boss.bosscommon.exception.clientException;
 import com.boss.bosscommon.pojo.dto.UserUpdateDTO;
 import com.boss.bosscommon.pojo.entity.User;
 import com.boss.bosscommon.pojo.entity.UserJobApply;
@@ -10,7 +11,7 @@ import java.util.List;
 public interface ProfileService {
     UserBasicVO getBasicInfo(String token);
 
-    void updateUserInfo(String token, UserUpdateDTO userUpdateDTO);
+    void updateUserInfo(String token, UserUpdateDTO userUpdateDTO) throws clientException;
 
     UserBasicVO getUserInfo(Long uid);
 

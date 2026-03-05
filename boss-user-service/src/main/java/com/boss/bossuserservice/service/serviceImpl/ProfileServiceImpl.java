@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,7 +43,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    public void updateUserInfo(String token, UserUpdateDTO userUpdateDTO) {
+    public void updateUserInfo(String token, UserUpdateDTO userUpdateDTO) throws clientException {
         User existed = authMapper.queryByPhone(userUpdateDTO.getPhone(), userUpdateDTO.getRole());
         if(existed == null) {
             throw new clientException("该用户不存在");
@@ -62,13 +63,13 @@ public class ProfileServiceImpl implements ProfileService {
                 .build();
         profileMapper.update(user);
 
-        if(userUpdateDTO.getName() != null) {
+        if(StringUtils.hasText(userUpdateDTO.getName())) {
             map.put("name", userUpdateDTO.getName());
         }
-        if(userUpdateDTO.getPhone() != null) {
+        if(StringUtils.hasText(userUpdateDTO.getPhone())) {
             map.put("phone", userUpdateDTO.getPhone());
         }
-        if(userUpdateDTO.getAvatar() != null) {
+        if(StringUtils.hasText(userUpdateDTO.getAvatar())) {
             map.put("avatar", userUpdateDTO.getAvatar());
         }
         if(userUpdateDTO.getDeleted() != null && userUpdateDTO.getDeleted() == 1) {

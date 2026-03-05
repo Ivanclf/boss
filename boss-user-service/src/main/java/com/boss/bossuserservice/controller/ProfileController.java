@@ -1,9 +1,11 @@
 package com.boss.bossuserservice.controller;
 
+import com.boss.bosscommon.exception.clientException;
 import com.boss.bosscommon.pojo.dto.UserUpdateDTO;
 import com.boss.bosscommon.pojo.entity.User;
 import com.boss.bosscommon.pojo.entity.UserJobApply;
 import com.boss.bosscommon.pojo.vo.UserBasicVO;
+import com.boss.bosscommon.result.Result;
 import com.boss.bossuserservice.service.ProfileService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
@@ -21,22 +23,27 @@ public class ProfileController {
     private ProfileService profileService;
 
     @GetMapping
-    public UserBasicVO getBasicInfo(@RequestHeader("Authorization") String token) {
-        return profileService.getBasicInfo(token);
+    public Result<UserBasicVO> getBasicInfo(@RequestHeader("Authorization") String token) {
+        return Result.success(profileService.getBasicInfo(token));
     }
 
     @PutMapping
-    public void updateUserInfo(@RequestHeader("Authorization") String token, @RequestBody UserUpdateDTO userUpdateDTO) {
+    public Result updateUserInfo(@RequestHeader("Authorization") String token, @RequestBody UserUpdateDTO userUpdateDTO) {
         if(userUpdateDTO.getPassword() != null) {
             userUpdateDTO.setPassword(string2Md5(userUpdateDTO.getPassword()));
         }
-        profileService.updateUserInfo(token, userUpdateDTO);
+        try {
+            profileService.updateUserInfo(token, userUpdateDTO);
+        } catch (clientException e) {
+            return Result.error(e.getMessage());
+        }
+        return Result.success();
     }
 
 
     @GetMapping("/{uid}")
-    public UserBasicVO getUserInfo(@NotNull @PathVariable Long uid) {
-        return profileService.getUserInfo(uid);
+    public Result<UserBasicVO> getUserInfo(@NotNull @PathVariable Long uid) {
+        return Result.success(profileService.getUserInfo(uid));
     }
 
     @GetMapping("/es/apply")
