@@ -55,7 +55,7 @@ public class ConversationServiceImpl implements ConversationService {
 
             List<ChatLatestListVO> chatLatestListVOList = allChatList.stream().map(chatRecord -> {
                 return ChatLatestListVO.builder()
-                        .userBasicVO(userClient.getBasicInfo(token))
+                        .userBasicVO(userClient.getBasicInfo(token).getData())
                         .latestTime(chatRecord.getCreateTime())
                         .context(chatRecord.getContext())
                         .build();

@@ -3,6 +3,7 @@ package com.boss.bosscommon.clients;
 import com.boss.bosscommon.pojo.dto.ChatMessageElasticsearchDTO;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
 import com.boss.bosscommon.pojo.vo.ChatRecordVO;
+import com.boss.bosscommon.result.Result;
 import com.github.pagehelper.PageInfo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ public interface ChatsClient {
     void save(@RequestBody ChatMessage chatMessage, @PathVariable Integer role);
 
     @GetMapping("/ai/{uid}")
-    PageInfo<ChatRecordVO> getAiChatRecord(
+    Result<PageInfo<ChatRecordVO>> getAiChatRecord(
             @PathVariable Long uid,
             @RequestParam(defaultValue = "1") int pageNum,
             @RequestParam(defaultValue = "10") int pageSize);

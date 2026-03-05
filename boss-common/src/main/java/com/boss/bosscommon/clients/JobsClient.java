@@ -4,6 +4,7 @@ import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
 import com.boss.bosscommon.pojo.entity.Job;
 import com.boss.bosscommon.pojo.entity.JobTag;
 import com.boss.bosscommon.pojo.vo.JobBasicInfoVO;
+import com.boss.bosscommon.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,7 +15,7 @@ import java.util.List;
 public interface JobsClient {
 
     @GetMapping("/{uid}")
-    JobBasicInfoVO getJobBasicInfo(@PathVariable Long uid);
+    Result<JobBasicInfoVO> getJobBasicInfo(@PathVariable Long uid);
 
     @GetMapping("/es/all")
     List<JobElasticsearchDTO> initElasticsearch();

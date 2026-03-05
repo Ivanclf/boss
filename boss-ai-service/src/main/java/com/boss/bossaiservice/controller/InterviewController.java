@@ -3,6 +3,7 @@ package com.boss.bossaiservice.controller;
 import com.boss.bossaiservice.service.InterviewService;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
 import com.boss.bosscommon.pojo.vo.ChatRecordVO;
+import com.boss.bosscommon.result.Result;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import org.springframework.http.MediaType;
@@ -27,11 +28,11 @@ public class InterviewController {
     }
 
     @GetMapping("/history")
-    public PageInfo<ChatRecordVO> getHistory(
+    public Result<PageInfo<ChatRecordVO>> getHistory(
             @RequestHeader("Authorization") String token,
             @RequestParam(defaultValue = "1") int pageNum,
             @RequestParam(defaultValue = "10") int pageSize) {
-        return interviewService.getHistory(token, pageNum, pageSize);
+        return Result.success(interviewService.getHistory(token, pageNum, pageSize));
     }
 
 }

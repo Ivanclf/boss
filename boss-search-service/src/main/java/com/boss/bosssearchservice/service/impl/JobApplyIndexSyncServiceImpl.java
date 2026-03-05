@@ -57,7 +57,7 @@ public class JobApplyIndexSyncServiceImpl implements JobApplyIndexSyncService {
             log.warn("JobApplyIndexSyncServiceImpl: 未找到applyId={}的申请信息", id);
             return;
         }
-        UserBasicVO candidate = userClient.getUserInfo(userJobApply.getCandidateUid());
+        UserBasicVO candidate = userClient.getUserInfo(userJobApply.getCandidateUid()).getData();
         Job job = jobsClient.queryForElasticsearch(userJobApply.getJobUid());
         List<String> tags = jobsClient.queryTagsForElasticsearch(userJobApply.getJobUid())
                 .stream().map(JobTag::getTag).collect(Collectors.toList());

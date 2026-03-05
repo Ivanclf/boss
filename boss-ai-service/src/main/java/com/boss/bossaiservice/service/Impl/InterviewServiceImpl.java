@@ -51,10 +51,6 @@ public class InterviewServiceImpl implements InterviewService {
         String sessionId = UUID.randomUUID().toString();
         Long userUid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
 
-        if(userUid == null) {
-            throw new clientException("用户未登录");
-        }
-
         stringRedisTemplate.opsForValue().set(INTERVIEW_SESSION_KEY + sessionId, userUid.toString());
 
         ChatMessage chatMessage = new ChatMessage();
@@ -130,7 +126,8 @@ public class InterviewServiceImpl implements InterviewService {
 
     @Override
     public PageInfo<ChatRecordVO> getHistory(String token, int pageNum, int pageSize) {
-        Long uid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
-        return chatsClient.getAiChatRecord(uid, pageNum, pageSize);
+        Object object = stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long uid = Long.valueOf(object instanceof String ? (String) object : "0");
+        return chatsClient.getAiChatRecord(uid, pageNum, pageSize).getData();
     }
 }

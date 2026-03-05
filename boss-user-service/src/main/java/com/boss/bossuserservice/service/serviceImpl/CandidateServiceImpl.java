@@ -39,7 +39,7 @@ public class CandidateServiceImpl implements CandidateService {
            throw new clientException("token 不正确");
         }
 
-        JobBasicInfoVO jobBasicInfo = jobsClient.getJobBasicInfo(userJobApplyDTO.getJobUid());
+        JobBasicInfoVO jobBasicInfo = jobsClient.getJobBasicInfo(userJobApplyDTO.getJobUid()).getData();
 
         LocalDateTime now = LocalDateTime.now();
         UserJobApply userJobApply = UserJobApply.builder()
