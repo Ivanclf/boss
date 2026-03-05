@@ -56,7 +56,7 @@ public class ResponseWrapperFilter implements GlobalFilter {
                         try {
                             String originalResponse = new String(content, StandardCharsets.UTF_8);
 
-                            if (getStatusCode().is2xxSuccessful()) {
+                            if (getStatusCode() == null && getStatusCode().is2xxSuccessful()) {
                                 ObjectMapper objectMapper = new ObjectMapper();
                                 // 核心包装操作
                                 Result<Object> wrappedResult = Result.success(originalResponse);

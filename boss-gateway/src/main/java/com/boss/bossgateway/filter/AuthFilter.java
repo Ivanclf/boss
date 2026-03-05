@@ -11,6 +11,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -39,7 +40,6 @@ public class AuthFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
-        ServerHttpResponse response = exchange.getResponse();
 
         String path = request.getURI().getPath();
 
@@ -49,19 +49,16 @@ public class AuthFilter implements GlobalFilter {
 
         String token = request.getHeaders().getFirst("Authorization");
         if (token == null) {
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return response.setComplete();
+            return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "登录状态已过期"));
         }
 
         String key = LOGIN_USER_KEY + token;
 
-        Boolean hasKey = stringRedisTemplate.hasKey(key);
-        if (hasKey != null && hasKey) {
+        if (stringRedisTemplate.hasKey(key)) {
             stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.HOURS);
             return chain.filter(exchange);
         } else {
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return response.setComplete();
+            return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "登录状态已过期"));
         }
     }
 }

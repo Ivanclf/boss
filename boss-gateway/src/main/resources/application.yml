@@ -9,38 +9,36 @@ spring:
     nacos:
       server-addr: ${spring.cloud.nacos.server-addr}
     gateway:
-      routes:
-        - id: boss-user-service
-          uri: lb://boss-user-service
-          predicates:
-            - Path=/user/**
-          
-        - id: boss-job-service
-          uri: lb://boss-job-service
-          predicates:
-            - Path=/jobs/**
-          
-        - id: boss-chat-service
-          uri: lb://boss-chat-service
-          predicates:
-            - Path=/chat/**
-          
-        - id: boss-ai-service
-          uri: lb://boss-ai-service
-          predicates:
-            - Path=/ai/**
-          
-        - id: boss-search-service
-          uri: lb://boss-search-service
-          predicates:
-            - Path=/search/**
-          
+      server:
+        webflux:
+          routes:
+            - id: boss-user-service
+              uri: lb://boss-user-service
+              predicates:
+                - Path=/user/**
+
+            - id: boss-job-service
+              uri: lb://boss-job-service
+              predicates:
+                - Path=/jobs/**
+
+            - id: boss-chat-service
+              uri: lb://boss-chat-service
+              predicates:
+                - Path=/chat/**
+
+            - id: boss-ai-service
+              uri: lb://boss-ai-service
+              predicates:
+                - Path=/ai/**
+
+            - id: boss-search-service
+              uri: lb://boss-search-service
+              predicates:
+                - Path=/search/**
+
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-logging:
-  logback:
-    rollingpolicy:
-      max-file-size: 100MB
-      max-history: 7
-      total-size-cap: 500MB
+      - org.springframework.boot.autoconfigure.web.reactive.error.ErrorWebFluxAutoConfiguration
+      - org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration
