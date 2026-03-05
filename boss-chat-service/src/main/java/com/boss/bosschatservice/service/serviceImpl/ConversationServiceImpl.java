@@ -45,43 +45,53 @@ public class ConversationServiceImpl implements ConversationService {
     
     @Override
     public PageInfo<ChatLatestListVO> getConversationList(String token, int pageNum, int pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
+        try {
+            PageHelper.startPage(pageNum, pageSize);
 
-        Long userUid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
+            Object uid = stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+            Long userUid = Long.valueOf(uid instanceof String ? (String) uid : "0");
 
-        List<ChatRecord> allChatList = conversationMapper.getAllRelatedChat(userUid);
+            List<ChatRecord> allChatList = conversationMapper.getAllRelatedChat(userUid);
 
-        List<ChatLatestListVO> chatLatestListVOList = allChatList.stream().map(chatRecord -> {
-            return ChatLatestListVO.builder()
-                    .userBasicVO(userClient.getBasicInfo(token))
-                    .latestTime(chatRecord.getCreateTime())
-                    .context(chatRecord.getContext())
-                    .build();
-        }).toList();
+            List<ChatLatestListVO> chatLatestListVOList = allChatList.stream().map(chatRecord -> {
+                return ChatLatestListVO.builder()
+                        .userBasicVO(userClient.getBasicInfo(token))
+                        .latestTime(chatRecord.getCreateTime())
+                        .context(chatRecord.getContext())
+                        .build();
+            }).toList();
 
-        return new PageInfo<>(chatLatestListVOList);
+            return new PageInfo<>(chatLatestListVOList);
+        } finally {
+            PageHelper.clearPage();
+        }
     }
 
     @Override
     public PageInfo<ChatRecordVO> getChatRecord(String token, int pageNum, int pageSize, Long uid) {
-        PageHelper.startPage(pageNum, pageSize);
+        try {
+            PageHelper.startPage(pageNum, pageSize);
 
-        Long fromUid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
+            Object object = stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+            Long fromUid = Long.valueOf(object instanceof String ? (String) object : "0");
 
-        List<ChatRecord> chatRecords = conversationMapper.getChatByUids(fromUid, uid);
+            List<ChatRecord> chatRecords = conversationMapper.getChatByUids(fromUid, uid);
 
-        List<ChatRecordVO> chatRecordVOS = chatRecords.stream().map(chatRecord -> {
-            return ChatRecordVO.builder()
-                    .status(chatRecord.getStatus())
-                    .fromUid(chatRecord.getFromUid())
-                    .toUid(chatRecord.getToUid())
-                    .jobUid(chatRecord.getJobUid())
-                    .createTime(chatRecord.getCreateTime())
-                    .context(chatRecord.getContext())
-                    .build();
-        }).toList();
+            List<ChatRecordVO> chatRecordVOS = chatRecords.stream().map(chatRecord -> {
+                return ChatRecordVO.builder()
+                        .status(chatRecord.getStatus())
+                        .fromUid(chatRecord.getFromUid())
+                        .toUid(chatRecord.getToUid())
+                        .jobUid(chatRecord.getJobUid())
+                        .createTime(chatRecord.getCreateTime())
+                        .context(chatRecord.getContext())
+                        .build();
+            }).toList();
 
-        return new PageInfo<>(chatRecordVOS);
+            return new PageInfo<>(chatRecordVOS);
+        } finally {
+            PageHelper.clearPage();
+        }
     }
 
     @Override
@@ -110,22 +120,26 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public PageInfo<ChatRecordVO> getAiChatRecord(Long uid, int pageNum, int pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
+        try {
+            PageHelper.startPage(pageNum, pageSize);
 
-        List<ChatRecord> chatRecords = conversationMapper.getChatBetweenUserAndAI(uid, AI_UID);
+            List<ChatRecord> chatRecords = conversationMapper.getChatBetweenUserAndAI(uid, AI_UID);
 
-        List<ChatRecordVO> chatRecordVOS = chatRecords.stream()
-                .map(chatRecord -> ChatRecordVO.builder()
-                        .status(chatRecord.getStatus())
-                        .fromUid(chatRecord.getFromUid())
-                        .toUid(chatRecord.getToUid())
-                        .jobUid(chatRecord.getJobUid())
-                        .createTime(chatRecord.getCreateTime())
-                        .context(chatRecord.getContext())
-                        .build())
-                .toList();
-        
-        return new PageInfo<>(chatRecordVOS);
+            List<ChatRecordVO> chatRecordVOS = chatRecords.stream()
+                    .map(chatRecord -> ChatRecordVO.builder()
+                            .status(chatRecord.getStatus())
+                            .fromUid(chatRecord.getFromUid())
+                            .toUid(chatRecord.getToUid())
+                            .jobUid(chatRecord.getJobUid())
+                            .createTime(chatRecord.getCreateTime())
+                            .context(chatRecord.getContext())
+                            .build())
+                    .toList();
+
+            return new PageInfo<>(chatRecordVOS);
+        } finally {
+            PageHelper.clearPage();
+        }
     }
 
     @Override

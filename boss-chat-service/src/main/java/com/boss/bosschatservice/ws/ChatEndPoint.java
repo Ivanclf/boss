@@ -7,7 +7,6 @@ import com.boss.bosscommon.exception.clientException;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.Resource;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
@@ -57,36 +56,22 @@ public class ChatEndPoint {
             try {
                 String token = message.trim();
                 String key = LOGIN_USER_KEY + token;
-                Object uidObj = stringRedisTemplate.opsForHash().get(key, "uid");
-                
-                if (uidObj != null) {
-                    Long uid = null;
-                    try {
-                        uid = Long.valueOf(uidObj.toString());
-                    } catch (Exception e) {
-                        log.error("uid 转换失败", e);
-                    }
-                    
-                    if (uid != null) {
-                        authenticatedUsers.put(session, uid);
-                        onlineUsers.put(uid, session);
+                Object uid = stringRedisTemplate.opsForHash().get(key, "uid");
 
-                        session.getBasicRemote().sendText("{\"type\":\"auth\",\"status\":\"success\"}");
-                        log.info("用户 {} 认证成功", uid);
-                        return;
-                    }
+                if (uid instanceof String) {
+                    authenticatedUsers.put(session,Long.valueOf((String) uid));
+                    onlineUsers.put(Long.valueOf((String) uid), session);
+
+                    session.getBasicRemote().sendText("{\"type\":\"auth\",\"status\":\"success\"}");
+                    log.info("用户 {} 认证成功", uid);
+                    return;
                 }
-            } catch (Exception e) {
-                log.error("Token解析或验证失败", e);
-            }
 
-            try {
                 session.getBasicRemote().sendText("{\"type\":\"auth\",\"status\":\"failed\",\"message\":\"Authentication failed\"}");
                 session.close();
-            } catch (IOException ioException) {
-                log.error("关闭连接失败", ioException);
+            } catch (IOException e) {
+                log.error("发送信息失败", e);
             }
-            return;
         }
 
         ChatMessage msgObj;

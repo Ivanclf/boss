@@ -21,8 +21,6 @@ public class ChatRecordKafkaListener {
 
     @Resource
     private ConversationService conversationService;
-    @Resource
-    private ObjectMapper objectMapper;
 
     @KafkaListener(topics = "${kafka.topics.chat-record-topic}", groupId = "${spring.application.name}-group")
     public void listenChatMessages(@Payload ChatMessage chatMessage, Acknowledgment acknowledgment) {
