@@ -19,6 +19,9 @@ import java.util.List;
 import static com.boss.bosssearchservice.constants.ChatMessageIndexConstant.CHAT_MESSAGE_INDEX;
 import static com.boss.bosssearchservice.util.CanalColumnUtil.*;
 
+/**
+ * 将从 canal 中提取的数据同步到 ES 中
+ */
 @Service
 @Slf4j
 public class ChatMessageIndexSyncServiceImpl implements ChatMessageIndexSyncService {
@@ -48,6 +51,10 @@ public class ChatMessageIndexSyncServiceImpl implements ChatMessageIndexSyncServ
         save(chatMessageElasticsearchDTO);
     }
 
+    /**
+     * 保存/更新文档
+     * @param doc
+     */
     private void save(ChatMessageElasticsearchDTO doc) {
         try {
             IndexRequest request = new IndexRequest(CHAT_MESSAGE_INDEX)
@@ -59,6 +66,10 @@ public class ChatMessageIndexSyncServiceImpl implements ChatMessageIndexSyncServ
         }
     }
 
+    /**
+     * 删除文档
+     * @param id
+     */
     private void delete(Long id) {
         try {
             DeleteRequest request = new DeleteRequest(CHAT_MESSAGE_INDEX, id.toString());

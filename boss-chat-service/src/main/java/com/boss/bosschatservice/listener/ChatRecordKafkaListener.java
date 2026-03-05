@@ -2,8 +2,6 @@ package com.boss.bosschatservice.listener;
 
 import com.boss.bosschatservice.service.ConversationService;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

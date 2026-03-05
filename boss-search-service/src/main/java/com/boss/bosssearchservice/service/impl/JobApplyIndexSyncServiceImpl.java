@@ -27,6 +27,9 @@ import java.util.stream.Collectors;
 import static com.boss.bosssearchservice.constants.JobApplyIndexConstant.JOB_APPLY_INDEX;
 import static com.boss.bosssearchservice.util.CanalColumnUtil.getLong;
 
+/**
+ * 岗位实时同步到 ES 的实现类
+ */
 @Service
 @Slf4j
 public class JobApplyIndexSyncServiceImpl implements JobApplyIndexSyncService {

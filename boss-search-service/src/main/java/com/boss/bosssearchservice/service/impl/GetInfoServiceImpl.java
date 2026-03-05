@@ -39,6 +39,7 @@ public class GetInfoServiceImpl implements GetInfoService {
             if (job != null) {
                 Long candidateUid = user.getCandidateUid();
                 UserBasicVO candidateBasicInfo = userClient.getUserInfo(candidateUid).getData();
+                // 组装投递记录
                 JobApplyElasticsearchDTO result = JobApplyElasticsearchDTO.builder()
                         .applyId(user.getId())
                         .candidateUid(candidateUid)

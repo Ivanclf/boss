@@ -53,6 +53,7 @@ public class SearchServiceImpl implements SearchService {
         BoolQueryBuilder bool = QueryBuilders.boolQuery()
                 .filter(QueryBuilders.termQuery("status", PUBLISHED));
 
+        // 关键词搜索
         if(StringUtils.hasText(keyword)) {
             bool.must(QueryBuilders.multiMatchQuery(
                     keyword,
@@ -62,10 +63,12 @@ public class SearchServiceImpl implements SearchService {
             ));
         }
 
+        // 精确匹配城市
         if(StringUtils.hasText(city)) {
             bool.filter(QueryBuilders.termQuery("city", city));
         }
 
+        // 薪资范围筛选
         if(salaryMin != null || salaryMax != null) {
             RangeQueryBuilder range = QueryBuilders.rangeQuery("salaryMax");
             if(salaryMin != null) {
@@ -77,6 +80,7 @@ public class SearchServiceImpl implements SearchService {
             bool.filter(range);
         }
 
+        // 分页
         SearchSourceBuilder source = new SearchSourceBuilder()
                 .query(bool)
                 .from((pageNum - 1) * pageSize)
