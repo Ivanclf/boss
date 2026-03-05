@@ -7,9 +7,12 @@ import com.boss.bosscommon.pojo.dto.JobUpdateDTO;
 import com.boss.bosscommon.pojo.entity.Job;
 import com.boss.bosscommon.pojo.entity.JobTag;
 import com.boss.bosscommon.pojo.vo.JobBasicInfoVO;
+import com.boss.bosscommon.result.Result;
 import com.boss.bossjobservice.service.JobsService;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Resource;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
@@ -23,17 +26,22 @@ public class JobsController {
     private JobsService jobsService;
 
     @PostMapping
-    public void insertJobs(@RequestHeader("authorization") String token, @RequestBody JobInsertDTO jobInsertDTO) {
+    public Result insertJobs(@RequestHeader("authorization") String token, @RequestBody JobInsertDTO jobInsertDTO) {
         if(jobInsertDTO.getSalaryMax() * jobInsertDTO.getSalaryMin() < 0) {
-            throw new clientException("输入的薪资金额不合理");
+            return Result.error("输入的薪资金额不合理");
         }
-        if(jobInsertDTO.getTitle().isBlank()) {
-            throw new clientException("请输入标题");
+        if(StringUtils.hasText(jobInsertDTO.getTitle())) {
+            return Result.error("请输入标题");
         }
-        if(jobInsertDTO.getTags() == null || jobInsertDTO.getTags().isEmpty()) {
-            throw new clientException("请输入标签");
+        if(CollectionUtils.isEmpty(jobInsertDTO.getTags())) {
+            return Result.error("请输入标签");
         }
-        jobsService.insert(token, jobInsertDTO);
+        try {
+            jobsService.insert(token, jobInsertDTO);
+            return Result.success();
+        } catch (clientException e) {
+            return Result.error(e.getMessage());
+        }
     }
 
     @GetMapping("/{uid}")
@@ -42,20 +50,21 @@ public class JobsController {
     }
 
     @PutMapping
-    public void updateJobs(@RequestBody JobUpdateDTO jobUpdateDTO) {
+    public Result updateJobs(@RequestBody JobUpdateDTO jobUpdateDTO) {
         if(jobUpdateDTO.getUid() == null) {
-            throw new clientException("请输入正确的 UID");
+            return Result.error("请输入正确的 UID");
         }
         if(jobUpdateDTO.getSalaryMax() * jobUpdateDTO.getSalaryMin() < 0) {
-            throw new clientException("输入的薪资金额不合理");
+            return Result.error("输入的薪资金额不合理");
         }
-        if(jobUpdateDTO.getTitle().isBlank()) {
-            throw new clientException("请输入标题");
+        if(StringUtils.hasText(jobUpdateDTO.getTitle())) {
+            return Result.error("请输入标题");
         }
-        if(jobUpdateDTO.getTags() == null || jobUpdateDTO.getTags().isEmpty()) {
-            throw new clientException("请输入标签");
+        if(CollectionUtils.isEmpty(jobUpdateDTO.getTags())) {
+            return Result.error("请输入标签");
         }
         jobsService.update(jobUpdateDTO);
+        return Result.success();
     }
 
     @GetMapping("/es/all")

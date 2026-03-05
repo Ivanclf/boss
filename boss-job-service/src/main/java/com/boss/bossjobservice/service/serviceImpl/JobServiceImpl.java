@@ -36,26 +36,27 @@ public class JobServiceImpl implements JobsService {
 
     @Override
     @Transactional
-    public void insert(String token, JobInsertDTO jobInsertDTO) {
-        Long hrUid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
-        if(hrUid == null) {
+    public void insert(String token, JobInsertDTO jobInsertDTO) throws clientException {
+        Object uid = stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long hrUid = Long.valueOf(uid instanceof String ? (String) uid : "0");
+        if(hrUid.equals(0L)) {
             throw new clientException("用户未登录");
         }
 
         List<String> tags = jobInsertDTO.getTags();
         LocalDateTime now = LocalDateTime.now();
-        Job job = new Job();
-        job.setHrUid(jobInsertDTO.getHrUid());
-        job.setTitle(jobInsertDTO.getTitle());
-        job.setDescription(jobInsertDTO.getDescription());
-        job.setRequirement(jobInsertDTO.getRequirement());
-        job.setCity(jobInsertDTO.getCity());
-        job.setSalaryMin(jobInsertDTO.getSalaryMin());
-        job.setSalaryMax(jobInsertDTO.getSalaryMax());
-        job.setHrUid(hrUid);
-        job.setStatus(UNPUBLISHED);
-        job.setPublishTime(now);
-        job.setUpdateTime(now);
+        Job job = Job.builder()
+                .hrUid(jobInsertDTO.getHrUid())
+                .title(jobInsertDTO.getTitle())
+                .description(jobInsertDTO.getDescription())
+                .requirement(jobInsertDTO.getRequirement())
+                .city(jobInsertDTO.getCity())
+                .salaryMax(jobInsertDTO.getSalaryMax())
+                .salaryMin(jobInsertDTO.getSalaryMin())
+                .status(UNPUBLISHED)
+                .publishTime(now)
+                .updateTime(now)
+                .build();
         Long jobUid = jobsMapper.insert(job);
         if(jobUid == null) {
             throw new clientException("插入失败");
@@ -72,35 +73,34 @@ public class JobServiceImpl implements JobsService {
     public JobBasicInfoVO getJobBasicInfo(Long uid) {
         Job job = jobsMapper.getJobByUid(uid);
         List<JobTag> jobTags = jobTagMapper.getTagsByUid(uid);
-        JobBasicInfoVO jobBasicInfoVO = new JobBasicInfoVO();
-        jobBasicInfoVO.setUid(job.getUid());
-        jobBasicInfoVO.setHrUid(job.getHrUid());
-        jobBasicInfoVO.setTitle(job.getTitle());
-        jobBasicInfoVO.setDescription(job.getDescription());
-        jobBasicInfoVO.setRequirement(job.getRequirement());
-        jobBasicInfoVO.setCity(job.getCity());
-        jobBasicInfoVO.setSalaryMin(job.getSalaryMin());
-        jobBasicInfoVO.setSalaryMax(job.getSalaryMax());
-        jobBasicInfoVO.setStatus(job.getStatus());
-        jobBasicInfoVO.setJobTags(
-                jobTags.stream().map(JobTag::getTag).toList()
-        );
-        return jobBasicInfoVO;
+        return JobBasicInfoVO.builder()
+                .uid(job.getUid())
+                .hrUid(job.getHrUid())
+                .title(job.getTitle())
+                .description(job.getDescription())
+                .requirement(job.getRequirement())
+                .city(job.getCity())
+                .salaryMin(job.getSalaryMin())
+                .salaryMax(job.getSalaryMax())
+                .status(job.getStatus())
+                .jobTags(jobTags.stream().map(JobTag::getTag).toList())
+                .build();
     }
 
     @Override
     @Transactional
     public void update(JobUpdateDTO jobUpdateDTO) {
-        Job job = new Job();
-        job.setUid(jobUpdateDTO.getUid());
-        job.setHrUid(jobUpdateDTO.getHrUid());
-        job.setTitle(jobUpdateDTO.getTitle());
-        job.setDescription(jobUpdateDTO.getDescription());
-        job.setRequirement(jobUpdateDTO.getRequirement());
-        job.setCity(jobUpdateDTO.getCity());
-        job.setSalaryMin(jobUpdateDTO.getSalaryMin());
-        job.setSalaryMax(jobUpdateDTO.getSalaryMax());
-        job.setStatus(jobUpdateDTO.getStatus());
+        Job job = Job.builder()
+                .uid(jobUpdateDTO.getUid())
+                .hrUid(jobUpdateDTO.getHrUid())
+                .title(jobUpdateDTO.getTitle())
+                .description(jobUpdateDTO.getDescription())
+                .requirement(jobUpdateDTO.getRequirement())
+                .city(jobUpdateDTO.getCity())
+                .salaryMin(jobUpdateDTO.getSalaryMin())
+                .salaryMax(jobUpdateDTO.getSalaryMax())
+                .status(jobUpdateDTO.getStatus())
+                .build();
 
         Long uid = jobUpdateDTO.getUid();
         List<String> tags = jobUpdateDTO.getTags();
@@ -121,23 +121,22 @@ public class JobServiceImpl implements JobsService {
         List<Job> jobs = jobsMapper.queryAll();
         List<JobElasticsearchDTO> results = new ArrayList<>();
         for(Job job : jobs) {
-            JobElasticsearchDTO jobElasticsearchDTO = new JobElasticsearchDTO();
-            jobElasticsearchDTO.setUid(job.getUid());
-            jobElasticsearchDTO.setHrUid(job.getHrUid());
-            jobElasticsearchDTO.setTitle(job.getTitle());
-            jobElasticsearchDTO.setDescription(job.getDescription());
-            jobElasticsearchDTO.setRequirement(job.getRequirement());
-            jobElasticsearchDTO.setCity(job.getCity());
-            jobElasticsearchDTO.setSalaryMin(job.getSalaryMin());
-            jobElasticsearchDTO.setSalaryMax(job.getSalaryMax());
-            jobElasticsearchDTO.setStatus(job.getStatus());
-            jobElasticsearchDTO.setPublishTime(job.getPublishTime());
-            jobElasticsearchDTO.setUpdateTime(job.getUpdateTime());
-            jobElasticsearchDTO.setTags(
-                    jobTagMapper.getTagsByUid(jobElasticsearchDTO.getUid()).stream()
-                            .map(JobTag::getTag).toList()
-            );
-            results.add(jobElasticsearchDTO);
+            results.add(JobElasticsearchDTO.builder()
+                    .uid(job.getUid())
+                    .hrUid(job.getHrUid())
+                    .title(job.getTitle())
+                    .description(job.getDescription())
+                    .requirement(job.getRequirement())
+                    .city(job.getCity())
+                    .salaryMin(job.getSalaryMin())
+                    .salaryMax(job.getSalaryMax())
+                    .status(job.getStatus())
+                    .publishTime(job.getPublishTime())
+                    .updateTime(job.getUpdateTime())
+                    .tags(jobTagMapper.getTagsByUid(job.getUid()).stream()
+                            .map(JobTag::getTag)
+                            .toList())
+                    .build());
         }
         return results;
     }
