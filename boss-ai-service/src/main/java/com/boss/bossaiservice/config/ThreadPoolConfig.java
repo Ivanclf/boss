@@ -11,9 +11,12 @@ import java.util.concurrent.TimeUnit;
 public class ThreadPoolConfig {
     
     @Bean("interviewTaskExecutor")
-    public ThreadPoolExecutor threadPoolExecutor() {
-        return new ThreadPoolExecutor(
-                5, 10, 1L, TimeUnit.HOURS,
-                new ArrayBlockingQueue<>(20));
+    public ThreadPoolExecutor interviewThreadPoolExecutor() {
+        return new ThreadPoolExecutor(5, 10, 1L, TimeUnit.HOURS, new ArrayBlockingQueue<>(20));
+    }
+
+    @Bean("chatSaveTaskExecutor")
+    public ThreadPoolExecutor chatSaveThreadPoolExecutor() {
+        return new ThreadPoolExecutor(5, 20, 5, TimeUnit.MINUTES, new ArrayBlockingQueue<>(40));
     }
 }

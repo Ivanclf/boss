@@ -2,13 +2,13 @@ package com.boss.bossaiservice.service.Impl;
 
 import com.boss.bossaiservice.service.InterviewService;
 import com.boss.bosscommon.clients.ChatsClient;
-import com.boss.bosscommon.exception.clientException;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
 import com.boss.bosscommon.pojo.vo.ChatRecordVO;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -19,6 +19,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -45,18 +46,21 @@ public class InterviewServiceImpl implements InterviewService {
 
     @Value("${kafka.topics.interview-topic}")
     private String interviewTopic;
+    @Autowired
+    private ThreadPoolExecutor chatSaveTaskExecutor;
 
     @Override
     public Flux<String> start(String token) {
         String sessionId = UUID.randomUUID().toString();
-        Long userUid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
+        Long userUid = Long.valueOf((String) Objects.requireNonNull(stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid")));
 
         stringRedisTemplate.opsForValue().set(INTERVIEW_SESSION_KEY + sessionId, userUid.toString());
 
-        ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setFromUid(userUid);
-        chatMessage.setToUid(AI_UID);
-        chatMessage.setMessage("可以开始了");
+        ChatMessage chatMessage = ChatMessage.builder()
+                .fromUid(userUid)
+                .toUid(AI_UID)
+                .message("可以开始了")
+                .build();
 
         Message<ChatMessage> kafkaChatMessage = MessageBuilder
                 .withPayload(chatMessage)
@@ -85,16 +89,23 @@ public class InterviewServiceImpl implements InterviewService {
 
         return chatClient.prompt()
                 .user("可以开始了")
-                .stream().content();
+                .stream()
+                .content();
     }
 
     @Override
     public Flux<String> question(ChatMessage userChatMessage, String token) {
-        Long userUid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
+        Long userUid = Long.valueOf((String) Objects.requireNonNull(stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid")));
         userChatMessage.setFromUid(userUid);
         userChatMessage.setToUid(AI_UID);
 
-        chatsClient.save(userChatMessage, CHAT_HUMAN_RESOURCES);
+        CompletableFuture<Void> chatFuture = CompletableFuture.runAsync(() -> {
+            try {
+                chatsClient.save(userChatMessage, CHAT_HUMAN_RESOURCES);
+            } catch (Exception e) {
+                log.error("保存聊天记录失败", e);
+            }
+        }, chatSaveTaskExecutor);
 
         Message<ChatMessage> kafkaMessage = MessageBuilder
                 .withPayload(userChatMessage)

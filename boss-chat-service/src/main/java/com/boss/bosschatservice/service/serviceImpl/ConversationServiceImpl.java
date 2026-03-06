@@ -96,10 +96,11 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public void saveChatRecord(Long fromUid, Long toUid, String message, Integer role) throws JsonProcessingException {
-        ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setFromUid(fromUid);
-        chatMessage.setToUid(toUid);
-        chatMessage.setMessage(message);
+        ChatMessage chatMessage = ChatMessage.builder()
+                .fromUid(fromUid)
+                .toUid(toUid)
+                .message(message)
+                .build();
 
         kafkaTemplate.send(chatRecordTopic, objectMapper.writeValueAsString(chatMessage));
         log.info("聊天消息已发送到Kafka: fromUid={}, toUid={}, message={}", fromUid, toUid, message);
