@@ -9,14 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface SearchService {
-    List<JobElasticsearchDTO> searchJob(
-            String keyword,
-            String city,
-            Integer salaryMin,
-            Integer salaryMax,
-            Integer pageNum,
-            Integer pageSize
-    ) throws IOException;
+    List<JobElasticsearchDTO> searchJob(String keyword, String city, Integer salaryMin, Integer salaryMax, Integer pageNum, Integer pageSize) throws IOException;
 
     List<JobApplyElasticsearchDTO> searchJobApply(String token, String keyword, String jobCity, Integer salaryMin, Integer salaryMax, Integer status, LocalDateTime date, Integer pageNum, Integer pageSize) throws IOException;
 

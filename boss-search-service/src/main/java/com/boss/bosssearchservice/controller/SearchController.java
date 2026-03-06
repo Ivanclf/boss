@@ -33,7 +33,7 @@ public class SearchController {
         try {
             List<JobElasticsearchDTO> jobElasticsearchDTOS = searchService.searchJob(keyword, city, salaryMin, salaryMax, pageNum, pageSize);
             return Result.success(jobElasticsearchDTOS);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return Result.error(e.getMessage());
         }
     }
@@ -53,7 +53,7 @@ public class SearchController {
         try {
             List<JobApplyElasticsearchDTO> jobApplyElasticsearchDTOS = searchService.searchJobApply(token, keyword, jobCity, salaryMin, salaryMax, status, date, pageNum, pageSize);
             return Result.success(jobApplyElasticsearchDTOS);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return Result.error(e.getMessage());
         }
     }
@@ -69,7 +69,7 @@ public class SearchController {
         try {
             List<ChatMessageElasticsearchDTO> chatMessageElasticsearchDTOS = searchService.searchChatMessage(token, keyword, date, pageNum, pageSize);
             return Result.success(chatMessageElasticsearchDTOS);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return Result.error(e.getMessage());
         }
     }

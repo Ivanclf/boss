@@ -2,23 +2,18 @@ package com.boss.bosssearchservice.config;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
-import com.alibaba.otter.canal.protocol.Message;
-import com.boss.bosssearchservice.util.CanalUtil;
-import jakarta.annotation.Resource;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.InetSocketAddress;
 
-import static java.lang.Thread.sleep;
-
 @Component
 @Slf4j
-public class CanalConfig implements InitializingBean, DisposableBean {
+public class CanalConfig {
 
     @Value("${canal.host}")
     private String host;
@@ -28,30 +23,27 @@ public class CanalConfig implements InitializingBean, DisposableBean {
     private String destination;
 
     /**
-     * -- GETTER --
      *  获取 Canal 连接器
      */
     @Getter
     private CanalConnector connector;
 
-    @Override
-    public void afterPropertiesSet() {
+    @PostConstruct
+    public void init() {
         connector = CanalConnectors.newSingleConnector(
                 new InetSocketAddress(host, port), destination, "", ""
         );
         connector.connect();
         connector.subscribe(".*\\..*");
         connector.rollback();
-        log.info("canal 链接成功");
-
+        log.info("Canal 连接成功");
     }
     
-    @Override
+    @PreDestroy
     public void destroy() {
         if (connector != null) {
             connector.disconnect();
-            log.info("canal 连接已关闭");
+            log.info("Canal 连接已关闭");
         }
     }
-
 }

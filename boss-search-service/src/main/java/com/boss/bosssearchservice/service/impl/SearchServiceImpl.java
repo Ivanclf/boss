@@ -41,17 +41,14 @@ public class SearchServiceImpl implements SearchService {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    public List<JobElasticsearchDTO> searchJob(
-            String keyword,
-            String city,
-            Integer salaryMin,
-            Integer salaryMax,
-            Integer pageNum,
-            Integer pageSize
-    ) throws IOException {
+    public List<JobElasticsearchDTO> searchJob(String keyword, String city,
+                                               Integer salaryMin, Integer salaryMax,
+                                               Integer pageNum, Integer pageSize) throws IOException {
+
         SearchRequest request = new SearchRequest(JOB_INDEX);
-        BoolQueryBuilder bool = QueryBuilders.boolQuery()
-                .filter(QueryBuilders.termQuery("status", PUBLISHED));
+
+        // 只查询已发布的岗位
+        BoolQueryBuilder bool = QueryBuilders.boolQuery().filter(QueryBuilders.termQuery("status", PUBLISHED));
 
         // 关键词搜索
         if(StringUtils.hasText(keyword)) {
@@ -96,22 +93,17 @@ public class SearchServiceImpl implements SearchService {
     }
 
     @Override
-    public List<JobApplyElasticsearchDTO> searchJobApply(
-            String token,
-            String keyword,
-            String jobCity,
-            Integer salaryMin,
-            Integer salaryMax,
-            Integer status,
-            LocalDateTime date,
-            Integer pageNum,
-            Integer pageSize) throws IOException {
+    public List<JobApplyElasticsearchDTO> searchJobApply(String token, String keyword,
+                                                         String jobCity, Integer salaryMin,
+                                                         Integer salaryMax, Integer status,
+                                                         LocalDateTime date, Integer pageNum,
+                                                         Integer pageSize) throws IOException {
         SearchRequest request = new SearchRequest(JOB_APPLY_INDEX);
 
         BoolQueryBuilder bool = QueryBuilders.boolQuery();
-
-        Long uid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
-        if(uid == null) {
+        Object object = stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long uid = Long.valueOf(object instanceof String ? (String) object : "0");
+        if(uid.equals(0L)) {
             throw new ClientAbortException("用户未登录");
         }
         bool.filter(QueryBuilders.termQuery("hrUid", uid));
@@ -174,11 +166,12 @@ public class SearchServiceImpl implements SearchService {
         SearchRequest request = new SearchRequest(CHAT_MESSAGE_INDEX);
 
         BoolQueryBuilder bool = QueryBuilders.boolQuery();
-
-        Long uid = Long.valueOf((String) stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"));
-        if(uid == null) {
+        Object object = stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+        Long uid = Long.valueOf(object instanceof String ? (String) object : "0");
+        if(uid.equals(0L)) {
             throw new ClientAbortException("用户未登录");
         }
+
         bool.filter(QueryBuilders.multiMatchQuery(
                 uid,
                 "fromUid",
