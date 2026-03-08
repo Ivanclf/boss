@@ -1,5 +1,6 @@
 package com.boss.bossuserservice.service.serviceImpl;
 
+import com.boss.bosscommon.exception.ClientException;
 import com.boss.bosscommon.pojo.dto.UserApplyChangeDTO;
 import com.boss.bosscommon.pojo.entity.UserJobApply;
 import com.boss.bosscommon.pojo.vo.UserHrShowVO;
@@ -13,6 +14,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.boss.bosscommon.constant.RedisConstant.LOGIN_USER_KEY;
 
@@ -24,15 +26,18 @@ public class HrServiceImpl implements HrService {
     private HrMapper hrMapper;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
     @Override
-    public PageInfo<UserHrShowVO> hetApplyList(String token, Long jobUid, Integer status, int pageNum, int pageSize) {
+    public PageInfo<UserHrShowVO> hetApplyList(String token, Long jobUid, Integer status, int pageNum, int pageSize) throws ClientException{
         try {
             PageHelper.startPage(pageNum, pageSize);
 
-            Object uid = stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
+            Long uid = Long.valueOf(Optional.ofNullable(stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"))
+                    .orElseThrow(() -> new ClientException("用户未登录"))
+                    .toString());
 
             UserJobApply userJobApply = UserJobApply.builder()
-                    .hrUid(Long.valueOf(uid instanceof String ? (String) uid : "0"))
+                    .hrUid(uid)
                     .jobUid(jobUid)
                     .status(status)
                     .build();

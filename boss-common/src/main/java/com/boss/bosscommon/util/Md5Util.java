@@ -13,7 +13,7 @@ public class Md5Util {
         if (input == null) {
             return null;
         }
-        
+
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] hashBytes = md.digest(input.getBytes());
@@ -22,7 +22,7 @@ public class Md5Util {
             for (byte b : hashBytes) {
                 sb.append(String.format("%02x", b));
             }
-            
+
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("MD5 algorithm not found", e);

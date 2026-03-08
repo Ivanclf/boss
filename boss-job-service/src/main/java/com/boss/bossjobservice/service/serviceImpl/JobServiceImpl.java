@@ -1,6 +1,6 @@
 package com.boss.bossjobservice.service.serviceImpl;
 
-import com.boss.bosscommon.exception.clientException;
+import com.boss.bosscommon.exception.ClientException;
 import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
 import com.boss.bosscommon.pojo.dto.JobInsertDTO;
 import com.boss.bosscommon.pojo.dto.JobUpdateDTO;
@@ -36,11 +36,11 @@ public class JobServiceImpl implements JobsService {
 
     @Override
     @Transactional
-    public void insert(String token, JobInsertDTO jobInsertDTO) throws clientException {
+    public void insert(String token, JobInsertDTO jobInsertDTO) throws ClientException {
         Object uid = stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
         Long hrUid = Long.valueOf(uid instanceof String ? (String) uid : "0");
         if(hrUid.equals(0L)) {
-            throw new clientException("用户未登录");
+            throw new ClientException("用户未登录");
         }
 
         List<String> tags = jobInsertDTO.getTags();
@@ -59,7 +59,7 @@ public class JobServiceImpl implements JobsService {
                 .build();
         Long jobUid = jobsMapper.insert(job);
         if(jobUid == null) {
-            throw new clientException("插入失败");
+            throw new ClientException("插入失败");
         }
 
         List<JobTag> jobTags = new ArrayList<>();

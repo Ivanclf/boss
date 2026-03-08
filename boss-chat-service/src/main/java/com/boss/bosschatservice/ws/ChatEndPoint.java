@@ -3,7 +3,7 @@ package com.boss.bosschatservice.ws;
 import com.boss.bosschatservice.config.WebSocketHandShakeInterceptor;
 import com.boss.bosschatservice.service.ConversationService;
 import com.boss.bosschatservice.util.SpringContextUtil;
-import com.boss.bosscommon.exception.clientException;
+import com.boss.bosscommon.exception.ClientException;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -112,7 +112,7 @@ public class ChatEndPoint {
         try {
             conversationService.saveChatRecord(senderUid, toUid, msgObj.getMessage(), CHAT_HUMAN_RESOURCES);
         } catch (JsonProcessingException e) {
-            throw new clientException("数据写入数据库失败");
+            throw new ClientException("数据写入数据库失败");
         }
     }
 

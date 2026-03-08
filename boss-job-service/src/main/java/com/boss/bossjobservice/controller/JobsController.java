@@ -1,6 +1,6 @@
 package com.boss.bossjobservice.controller;
 
-import com.boss.bosscommon.exception.clientException;
+import com.boss.bosscommon.exception.ClientException;
 import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
 import com.boss.bosscommon.pojo.dto.JobInsertDTO;
 import com.boss.bosscommon.pojo.dto.JobUpdateDTO;
@@ -39,7 +39,7 @@ public class JobsController {
         try {
             jobsService.insert(token, jobInsertDTO);
             return Result.success();
-        } catch (clientException e) {
+        } catch (ClientException e) {
             return Result.error(e.getMessage());
         }
     }

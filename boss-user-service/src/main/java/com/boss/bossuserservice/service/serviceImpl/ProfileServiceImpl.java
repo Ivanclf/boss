@@ -1,7 +1,7 @@
 package com.boss.bossuserservice.service.serviceImpl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.boss.bosscommon.exception.clientException;
+import com.boss.bosscommon.exception.ClientException;
 import com.boss.bosscommon.pojo.dto.UserUpdateDTO;
 import com.boss.bosscommon.pojo.entity.User;
 import com.boss.bosscommon.pojo.entity.UserJobApply;
@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.boss.bosscommon.constant.RedisConstant.LOGIN_USER_KEY;
 import static com.boss.bosscommon.constant.RedisConstant.LOGIN_USER_TTL;
+import static com.boss.bosscommon.util.Md5Util.string2Md5;
 
 @Service
 @Slf4j
@@ -43,10 +44,13 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    public void updateUserInfo(String token, UserUpdateDTO userUpdateDTO) throws clientException {
+    public void updateUserInfo(String token, UserUpdateDTO userUpdateDTO) throws ClientException {
+        if(userUpdateDTO.getPassword() != null) {
+            userUpdateDTO.setPassword(string2Md5(userUpdateDTO.getPassword()));
+        }
         User existed = authMapper.queryByPhone(userUpdateDTO.getPhone(), userUpdateDTO.getRole());
         if(existed == null) {
-            throw new clientException("该用户不存在");
+            throw new ClientException("该用户不存在");
         }
 
         String key = LOGIN_USER_KEY + token;

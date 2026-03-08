@@ -1,6 +1,6 @@
 package com.boss.bossjobservice.service;
 
-import com.boss.bosscommon.exception.clientException;
+import com.boss.bosscommon.exception.ClientException;
 import com.boss.bosscommon.pojo.dto.JobElasticsearchDTO;
 import com.boss.bosscommon.pojo.dto.JobInsertDTO;
 import com.boss.bosscommon.pojo.dto.JobUpdateDTO;
@@ -11,7 +11,7 @@ import com.boss.bosscommon.pojo.vo.JobBasicInfoVO;
 import java.util.List;
 
 public interface JobsService {
-    void insert(String token, JobInsertDTO jobInsertDTO) throws clientException;
+    void insert(String token, JobInsertDTO jobInsertDTO) throws ClientException;
 
     JobBasicInfoVO getJobBasicInfo(Long uid);
 
