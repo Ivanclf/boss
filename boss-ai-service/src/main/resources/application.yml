@@ -32,6 +32,8 @@ spring:
         cluster-name: XA
   kafka:
     bootstrap-servers: ${spring.kafka.bootstrap-servers}
+    admin:
+      auto-create: false
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

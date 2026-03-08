@@ -30,6 +30,8 @@ spring:
         cluster-name: XA
   kafka:
     bootstrap-servers: ${spring.kafka.bootstrap-servers}
+    admin:
+      auto-create: false
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml

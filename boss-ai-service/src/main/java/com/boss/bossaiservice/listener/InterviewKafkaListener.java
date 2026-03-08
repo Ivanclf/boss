@@ -46,10 +46,11 @@ public class InterviewKafkaListener {
                         .content()
                         .subscribe(aiResponse::append);
 
-                ChatMessage aiChatMessage = new ChatMessage();
-                aiChatMessage.setFromUid(AI_UID);
-                aiChatMessage.setToUid(chatMessage.getFromUid());
-                aiChatMessage.setMessage(aiResponse.toString());
+                ChatMessage aiChatMessage = ChatMessage.builder()
+                        .fromUid(AI_UID)
+                        .toUid(chatMessage.getFromUid())
+                        .message(aiResponse.toString())
+                        .build();
 
                 chatsClient.save(aiChatMessage, ChatConstant.CHAT_ARTIFICIAL_INTELLIGENT);
 
