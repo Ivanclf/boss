@@ -5,7 +5,6 @@ import com.boss.bosscommon.constant.ChatConstant;
 import com.boss.bosscommon.pojo.entity.ChatMessage;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static com.boss.bosscommon.constant.AIUidConstant.AI_UID;
 
@@ -21,8 +21,6 @@ import static com.boss.bosscommon.constant.AIUidConstant.AI_UID;
 @Slf4j
 public class InterviewKafkaListener {
 
-    @Resource
-    private ChatClient chatClient;
     @Resource
     private ChatsClient chatsClient;
     @Resource
@@ -33,37 +31,30 @@ public class InterviewKafkaListener {
     private String retryTopic;
 
     @KafkaListener(topics = "${kafka.topics.interview-topic}", groupId = "${spring.application.name}-group")
-    public void listenInterviewMessages(ChatMessage chatMessage,
-                                        Acknowledgment acknowledgment) {
-        log.info("收到消息: {}", chatMessage.getMessage());
+    public void listenInterviewMessages(ChatMessage chatMessage, Acknowledgment acknowledgment) {
+        log.info("收到面试消息：fromUid={}, toUid={}", chatMessage.getFromUid(), chatMessage.getToUid());
+
+        // 只处理用户消息，AI 响应由 chat-service 的监听器负责保存
+        if (chatMessage.getFromUid().equals(AI_UID)) {
+            acknowledgment.acknowledge();
+            return;
+        }
 
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
             try {
-                StringBuilder aiResponse = new StringBuilder();
-                chatClient.prompt()
-                        .user(chatMessage.getMessage())
-                        .stream()
-                        .content()
-                        .subscribe(aiResponse::append);
-
-                ChatMessage aiChatMessage = ChatMessage.builder()
-                        .fromUid(AI_UID)
-                        .toUid(chatMessage.getFromUid())
-                        .message(aiResponse.toString())
-                        .build();
-
-                chatsClient.save(aiChatMessage, ChatConstant.CHAT_ARTIFICIAL_INTELLIGENT);
-
+                // 用户消息通过 Feign 客户端保存到 chat-service
+                chatsClient.save(chatMessage, ChatConstant.CHAT_HUMAN_RESOURCES);
+                log.info("用户消息已保存：fromUid={}, toUid={}", chatMessage.getFromUid(), chatMessage.getToUid());
                 acknowledgment.acknowledge();
             } catch (Exception e) {
-                log.error("处理ai信息时发生错误", e);
+                log.error("保存聊天记录时发生错误", e);
                 kafkaTemplate.send(retryTopic, chatMessage);
             }
         }, interviewTaskExecutor);
 
-        future.orTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        future.orTimeout(30, TimeUnit.SECONDS)
                 .exceptionally(ex -> {
-                    log.error("服务器繁忙，请稍后再试", ex);
+                    log.error("处理超时", ex);
                     return null;
                 });
     }

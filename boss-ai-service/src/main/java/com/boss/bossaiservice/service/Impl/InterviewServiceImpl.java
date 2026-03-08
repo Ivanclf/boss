@@ -17,6 +17,7 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 import java.util.Objects;
@@ -82,15 +83,35 @@ public class InterviewServiceImpl implements InterviewService {
         future.whenComplete((result, throwable) -> {
             if (throwable != null) {
                 log.error("消息队列处理时发生异常", throwable);
+                throw new RuntimeException();
             } else {
                 log.info("已成功返回数据");
             }
         });
 
+        StringBuilder aiResponseStringBuilder = new StringBuilder();
         return chatClient.prompt()
                 .user("可以开始了")
                 .stream()
-                .content();
+                .content()
+                .doOnNext(aiResponseStringBuilder::append)
+                .doOnComplete(() -> {
+                    if(!StringUtils.hasText(aiResponseStringBuilder.toString())) {
+                        kafkaTemplate.send(MessageBuilder
+                                .withPayload(ChatMessage.builder()
+                                        .fromUid(AI_UID)
+                                        .toUid(userUid)
+                                        .message(aiResponseStringBuilder.toString())
+                                        .build())
+                                .setHeader(KafkaHeaders.TOPIC, interviewTopic)
+                                .build())
+                                .whenComplete((result, ex) -> {
+                                    if (ex != null) {
+                                        log.error("发送 AI 响应失败", ex);
+                                    }
+                                });
+                    }
+                });
     }
 
     @Override
@@ -130,9 +151,29 @@ public class InterviewServiceImpl implements InterviewService {
             }
         });
 
+        StringBuilder aiResponseStringBuilder = new StringBuilder();
         return chatClient.prompt()
                 .user(userChatMessage.getMessage())
-                .stream().content();
+                .stream()
+                .content()
+                .doOnNext(aiResponseStringBuilder::append)
+                .doOnComplete(() -> {
+                    if(!StringUtils.hasText(aiResponseStringBuilder.toString())) {
+                        kafkaTemplate.send(MessageBuilder
+                                .withPayload(ChatMessage.builder()
+                                        .fromUid(AI_UID)
+                                        .toUid(userUid)
+                                        .message(aiResponseStringBuilder.toString())
+                                        .build())
+                                .setHeader(KafkaHeaders.TOPIC, interviewTopic)
+                                .build())
+                                .whenComplete((result, ex) -> {
+                                    if (ex != null) {
+                                        log.error("发送 AI 响应失败", ex);
+                                    }
+                                });
+                    }
+                });
     }
 
     @Override

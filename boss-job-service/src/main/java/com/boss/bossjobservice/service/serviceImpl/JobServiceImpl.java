@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.boss.bosscommon.constant.JobPublishConstant.UNPUBLISHED;
 import static com.boss.bosscommon.constant.RedisConstant.LOGIN_USER_KEY;
@@ -37,11 +38,8 @@ public class JobServiceImpl implements JobsService {
     @Override
     @Transactional
     public void insert(String token, JobInsertDTO jobInsertDTO) throws ClientException {
-        Object uid = stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid");
-        Long hrUid = Long.valueOf(uid instanceof String ? (String) uid : "0");
-        if(hrUid.equals(0L)) {
-            throw new ClientException("用户未登录");
-        }
+        Optional.ofNullable(stringRedisTemplate.opsForHash().get(LOGIN_USER_KEY + token, "uid"))
+                .orElseThrow(() -> new ClientException("用户未登录"));
 
         List<String> tags = jobInsertDTO.getTags();
         LocalDateTime now = LocalDateTime.now();
@@ -57,15 +55,11 @@ public class JobServiceImpl implements JobsService {
                 .publishTime(now)
                 .updateTime(now)
                 .build();
-        Long jobUid = jobsMapper.insert(job);
-        if(jobUid == null) {
-            throw new ClientException("插入失败");
-        }
+
+        Long jobUid = Optional.ofNullable(jobsMapper.insert(job)).orElseThrow(() -> new ClientException("插入失败"));
 
         List<JobTag> jobTags = new ArrayList<>();
-        for(String tag: tags) {
-            jobTags.add(new JobTag(null, jobUid, tag));
-        }
+        tags.forEach((tag) -> jobTags.add(new JobTag(null, jobUid, tag)));
         jobTagMapper.insertBatch(jobTags);
     }
 
@@ -105,9 +99,7 @@ public class JobServiceImpl implements JobsService {
         Long uid = jobUpdateDTO.getUid();
         List<String> tags = jobUpdateDTO.getTags();
         List<JobTag> jobTags = new ArrayList<>();
-        for(String tag : tags) {
-            jobTags.add(new JobTag(null, uid, tag));
-        }
+        tags.forEach((tag) -> jobTags.add(new JobTag(null, uid, tag)));
 
         job.setUpdateTime(LocalDateTime.now());
 
@@ -120,24 +112,24 @@ public class JobServiceImpl implements JobsService {
     public List<JobElasticsearchDTO> queryForElasticsearch() {
         List<Job> jobs = jobsMapper.queryAll();
         List<JobElasticsearchDTO> results = new ArrayList<>();
-        for(Job job : jobs) {
-            results.add(JobElasticsearchDTO.builder()
-                    .uid(job.getUid())
-                    .hrUid(job.getHrUid())
-                    .title(job.getTitle())
-                    .description(job.getDescription())
-                    .requirement(job.getRequirement())
-                    .city(job.getCity())
-                    .salaryMin(job.getSalaryMin())
-                    .salaryMax(job.getSalaryMax())
-                    .status(job.getStatus())
-                    .publishTime(job.getPublishTime())
-                    .updateTime(job.getUpdateTime())
-                    .tags(jobTagMapper.getTagsByUid(job.getUid()).stream()
-                            .map(JobTag::getTag)
-                            .toList())
-                    .build());
-        }
+
+        jobs.forEach((job -> results.add(JobElasticsearchDTO.builder()
+                .uid(job.getUid())
+                .hrUid(job.getHrUid())
+                .title(job.getTitle())
+                .description(job.getDescription())
+                .requirement(job.getRequirement())
+                .city(job.getCity())
+                .salaryMin(job.getSalaryMin())
+                .salaryMax(job.getSalaryMax())
+                .status(job.getStatus())
+                .publishTime(job.getPublishTime())
+                .updateTime(job.getUpdateTime())
+                .tags(jobTagMapper.getTagsByUid(job.getUid()).stream()
+                        .map(JobTag::getTag)
+                        .toList())
+                .build())));
+
         return results;
     }
 

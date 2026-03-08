@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.constraints.Min;
 import java.util.List;
 
+/**
+ * 工作岗位服务相关接口
+ */
 @RestController
 @RequestMapping("/jobs")
 public class JobsController {
@@ -25,6 +28,12 @@ public class JobsController {
     @Resource
     private JobsService jobsService;
 
+    /**
+     * 新建工作信息
+     * @param token 用户的 token
+     * @param jobInsertDTO
+     * @return
+     */
     @PostMapping
     public Result insertJobs(@RequestHeader("authorization") String token, @RequestBody JobInsertDTO jobInsertDTO) {
         if(jobInsertDTO.getSalaryMax() * jobInsertDTO.getSalaryMin() < 0) {
@@ -44,11 +53,21 @@ public class JobsController {
         }
     }
 
+    /**
+     * 获取指定工作的信息
+     * @param uid
+     * @return
+     */
     @GetMapping("/{uid}")
     public JobBasicInfoVO getJobBasicInfo(@Nonnull @Min(0) @PathVariable Long uid) {
         return jobsService.getJobBasicInfo(uid);
     }
 
+    /**
+     * 更新工作相关信息
+     * @param jobUpdateDTO
+     * @return
+     */
     @PutMapping
     public Result updateJobs(@RequestBody JobUpdateDTO jobUpdateDTO) {
         if(jobUpdateDTO.getUid() == null) {
@@ -67,16 +86,30 @@ public class JobsController {
         return Result.success();
     }
 
+    /**
+     * 仅用于 ES，实现工作全量更新
+     * @return
+     */
     @GetMapping("/es/all")
     public List<JobElasticsearchDTO> initElasticsearch() {
         return jobsService.queryForElasticsearch();
     }
 
+    /**
+     * 仅用于 ES，实现查找特定的工作
+     * @param uid
+     * @return
+     */
     @GetMapping("/es/job/{uid}")
     public Job queryForElasticsearch(@PathVariable Long uid) {
         return jobsService.queryJobForElasticsearch(uid);
     }
 
+    /**
+     * 仅用于 ES，实现查找特定工作工作标签
+     * @param uid
+     * @return
+     */
     @GetMapping("/es/jobtag/{uid}")
     public List<JobTag> queryTagsForElasticsearch(@PathVariable Long uid) {
         return jobsService.queryTagsForElasticsearch(uid);
