@@ -10,7 +10,7 @@
 
 ## 服务模块说明
 
-(此处的参考端口仅用于说明dockercompose文件中的端口配置情况，在具体部署时可以自行设置，不与组件接口冲突即可)
+(此处的参考端口仅用于说明 [docker compose 文件](./docker-compose.yml) 中的端口配置情况，在具体部署时可以自行设置，不与组件接口冲突即可)
 
 ### 1. boss-gateway (API网关)
 - 参考端口: 30000
@@ -54,10 +54,14 @@
 - Docker (推荐)
 
 ### 启动顺序
-1. 启动基础组件: MySQL, Redis, Nacos, Kafka, Elasticsearch, Canal
+1. 参照 [docker compose 中的组件要求](./docker-compose.yml) 启动基础组件: MySQL, Redis, Nacos, Kafka, Elasticsearch, Canal
 2. 启动第一组微服务: user-service, job-service, chat-service
 3. 启动第二组微服务: ai-service, search-service
 4. 最后启动API网关: boss-gateway
+
+## 接口说明
+
+详见 [接口文档](./接口文档.yaml)
 
 ## 结果展示
 
