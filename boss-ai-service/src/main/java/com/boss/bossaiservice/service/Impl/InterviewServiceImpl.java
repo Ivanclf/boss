@@ -96,7 +96,7 @@ public class InterviewServiceImpl implements InterviewService {
                 .content()
                 .doOnNext(aiResponseStringBuilder::append)
                 .doOnComplete(() -> {
-                    if(!StringUtils.hasText(aiResponseStringBuilder.toString())) {
+                    if(StringUtils.hasText(aiResponseStringBuilder.toString())) {
                         kafkaTemplate.send(MessageBuilder
                                 .withPayload(ChatMessage.builder()
                                         .fromUid(AI_UID)
@@ -158,7 +158,7 @@ public class InterviewServiceImpl implements InterviewService {
                 .content()
                 .doOnNext(aiResponseStringBuilder::append)
                 .doOnComplete(() -> {
-                    if(!StringUtils.hasText(aiResponseStringBuilder.toString())) {
+                    if(StringUtils.hasText(aiResponseStringBuilder.toString())) {
                         kafkaTemplate.send(MessageBuilder
                                 .withPayload(ChatMessage.builder()
                                         .fromUid(AI_UID)

@@ -106,7 +106,7 @@ public class JobsController {
     }
 
     /**
-     * 仅用于 ES，实现查找特定工作工作标签
+     * 仅用于 ES，实现查找特定工作标签
      * @param uid
      * @return
      */

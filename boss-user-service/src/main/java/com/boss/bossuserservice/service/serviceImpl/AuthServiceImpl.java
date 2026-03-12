@@ -43,10 +43,8 @@ public class AuthServiceImpl implements AuthService {
     public UserBasicVO loginByPassword(UserLoginPasswordDTO userLoginPasswordDTO) throws ClientException {
 
         String phone = userLoginPasswordDTO.getPhone();
-        String password = userLoginPasswordDTO.getPassword();
+        String password = string2Md5(userLoginPasswordDTO.getPassword());
         Integer role = userLoginPasswordDTO.getRole();
-
-        userLoginPasswordDTO.setPassword(string2Md5(userLoginPasswordDTO.getPassword()));
 
         User user = Optional.ofNullable(authMapper.queryByPhoneAndPassWord(phone, password, role))
                 .orElseThrow(() -> new ClientException("请输入正确的账号和密码"));

@@ -18,7 +18,7 @@ public class RegexUtil {
      * @return
      */
     public static boolean isPhoneValid(String phone) {
-        if(StringUtils.hasText(phone)) {
+        if(!StringUtils.hasText(phone)) {
             return false;
         }
         return PHONE_PATTERN.matcher(phone).matches();
