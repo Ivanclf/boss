@@ -31,7 +31,7 @@ public class ChatEndPoint {
 
     // 存储在线用户的映射关系，以向特定用户推送消息
     private static final Map<Long, Session> onlineUsers = new ConcurrentHashMap<>();
-    // 存储已认证绘画的用户表示，验证当前的用户会话是否是有效用户连接
+    // 存储已认证会话的用户表示，验证当前的用户会话是否是有效用户连接
     private static final Map<Session, Long> authenticatedUsers = new ConcurrentHashMap<>();
 
     private static final StringRedisTemplate stringRedisTemplate;
@@ -52,6 +52,7 @@ public class ChatEndPoint {
 
     @OnMessage
     public void onMessage(String message, Session session) {
+        // 如果没有该会话信息，就说明该用户需要认证
         if (!authenticatedUsers.containsKey(session)) {
             try {
                 String token = message.trim();
@@ -59,7 +60,7 @@ public class ChatEndPoint {
                 Object uid = stringRedisTemplate.opsForHash().get(key, "uid");
 
                 if (uid instanceof String) {
-                    authenticatedUsers.put(session,Long.valueOf((String) uid));
+                    authenticatedUsers.put(session, Long.valueOf((String) uid));
                     onlineUsers.put(Long.valueOf((String) uid), session);
 
                     session.getBasicRemote().sendText("{\"type\":\"auth\",\"status\":\"success\"}");
@@ -74,6 +75,7 @@ public class ChatEndPoint {
             }
         }
 
+        // 解析对方发来的消息
         ChatMessage msgObj;
         try {
             msgObj = objectMapper.readValue(message, ChatMessage.class);

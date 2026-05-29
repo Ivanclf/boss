@@ -39,7 +39,7 @@ public class JobsController {
         if(jobInsertDTO.getSalaryMax() * jobInsertDTO.getSalaryMin() < 0) {
             return Result.error("输入的薪资金额不合理");
         }
-        if(StringUtils.hasText(jobInsertDTO.getTitle())) {
+        if(!StringUtils.hasText(jobInsertDTO.getTitle())) {
             return Result.error("请输入标题");
         }
         if(CollectionUtils.isEmpty(jobInsertDTO.getTags())) {

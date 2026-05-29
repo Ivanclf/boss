@@ -4,7 +4,7 @@
 <mapper namespace="com.boss.bossjobservice.mapper.JobTagMapper">
 
     <insert id="insertBatch" parameterType="java.util.List">
-        insert into jobs_db.job_tag (job_uid, tag) values
+        insert into job_db.job_tag (job_uid, tag) values
         <foreach collection="list" item="item" separator=",">
             (#{item.jobUid}, #{item.tag})
         </foreach>
